@@ -92,7 +92,7 @@ int DecayRes() {
 		double p1_temp = p1[0];
 		double p2_temp = p2[0];
 
-		//transforming the basis by rotating it around y and then x axis
+		//transforming the basis by rotating it around z and then x axis
 		p1[0] = p1_temp*cos(alpha) - p1[1]*sin(alpha);
 		p2[0] = p2_temp*cos(alpha) - p2[1]*sin(alpha);
 

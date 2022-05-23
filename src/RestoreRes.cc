@@ -23,10 +23,10 @@ int RestoreRes()
 	TFile *output_file = new TFile(output_file_name.c_str(), "RECREATE");
 	TH2D *mass_distr = new TH2D("mass_distr", "mass_distr", 100, 0, 10, 4000, 0, 8);
 
-	/*RestoreMass("../data/Resonances/Kstar.root", m1, m2, mass_distr, 1);
-	RestoreMass("../data/Resonances/Unindent1.root", m1, m2, mass_distr, 1);
-*/	RestoreMass("../data/Resonances/Lambda1520.root", m1, m2, mass_distr, 1);
-	RestoreMass("../data/Resonances/Lambda.root", m1, m2, mass_distr, 1);
+	//RestoreMass("../data/Resonances/Kstar.root", m1, m2, mass_distr, 1);
+	//RestoreMass("../data/Resonances/UnindentPiK1169.root", m1, m2, mass_distr, 100);
+	RestoreMass("../data/Resonances/Lambda1520.root", m1, m2, mass_distr, 1);
+	//RestoreMass("../data/Resonances/Lambda.root", m1, m2, mass_distr, 100);
 
 	mass_distr->Draw();
 	mass_distr->Write();
@@ -81,7 +81,7 @@ void RestoreMass(const string input_file_name, const double m1, const double m2,
 
 		mass = getMass(mom1, mom2, momentum, m1, m2);
 
-		//if (!checkMom(p1, p2, mass)) continue;
+		if (!checkMom(p1, p2, mass)) continue;
 
 		double pT = sqrt(pow(p1[0]+p2[0], 2) + pow(p1[1]+p2[1], 2));
 
@@ -108,16 +108,28 @@ double getMass(const double mom1, const double mom2, const double momentum, cons
 bool checkMom(double *p1, double *p2, const double mass)
 {
 	double mom = 0, energy, vel, phi, theta;
+	double mom1 = 0, mom2 = 0;
 	const double pi = 3.14159265359;
+	double p1_tmp[3], p2_tmp[3];
 
 	for (int count = 0; count < 3; count++)
 	{
 		double p;
 
 		p = p1[count]+p2[count];
+
+		p1_tmp[count] = p1[count];
+		p2_tmp[count] = p2[count];
+
 		mom += p*p;
+
+		mom1 += p1[count]*p1[count];
+		mom2 += p2[count]*p2[count];
 	}
 	
+	mom1 = sqrt(mom1);
+	mom2 = sqrt(mom2);
+
 	phi = atan((p1[1]+p2[1])/(p1[0]+p2[0]));
 	theta = acos((p1[2]+p2[2])/sqrt(mom));
 
@@ -125,13 +137,23 @@ bool checkMom(double *p1, double *p2, const double mass)
 
 	vel = sqrt(mom)/energy;
 
-	p1[0] = p1[0]*cos(-phi)*sin(pi/2-theta)-vel*energy;
-	p1[1] = p1[1]*sin(-phi)*sin(pi/2-theta);
-	p1[2] = p1[2]*cos(pi/2-theta);
+	p1[1] = p1_tmp[1]*cos(-theta) + p1_tmp[2]*sin(-theta);
+	p2[1] = p2_tmp[1]*cos(-theta) + p2_tmp[2]*sin(-theta);
 
-	p2[0] = p2[0]*cos(-phi)*sin(pi/2-theta)-vel*energy;
-	p2[1] = p2[1]*sin(-phi)*sin(pi/2-theta);
-	p2[2] = p2[2]*cos(pi/2-theta);
+	p1[2] = p1_tmp[1]*sin(-theta) + p1_tmp[2]*cos(-theta);
+	p2[2] = p2_tmp[1]*sin(-theta) + p2_tmp[2]*cos(-theta);
+
+	p1_tmp[1] = p1[1];
+	p2_tmp[1] = p2[1];
+
+	p1[0] = p1_tmp[0]*cos(-phi) - p1_tmp[1]*sin(-phi);
+	p2[0] = p2_tmp[0]*cos(-phi) - p2_tmp[1]*sin(-phi);
+
+	p1[1] = p1_tmp[0]*sin(-phi) + p1_tmp[1]*cos(-phi);
+	p2[1] = p2_tmp[0]*sin(-phi) + p2_tmp[1]*cos(-phi);
+
+	p1[2] = p1[2]-vel*energy;
+	p2[2] = p2[2]-vel*energy;
 
 	mom = pow(p1[0]+p2[0], 2) + pow(p1[1]+p2[1], 2) + pow(p1[2]+p2[2], 2);
 
