@@ -1,0 +1,127 @@
+#include <cmath>
+#include "TRandom.h"
+#include "TFile.h"
+#include "TH2.h"
+#include "../lib/Particles.h"
+#include "../lib/ErrorHandler.h"
+#include "../utils/ProgressBar.cc"
+#include "../func/Tsallis.cc"
+#include "TTree.h"
+#include "TFile.h"
+
+int DecayRes() {
+	
+	//parameters
+	double part_number = 1E6;
+	const int seed = 1;
+
+	double m1 = Mass.proton;
+	double m2 = Mass.pion;
+
+	//double mean = Mass.Kstar;
+	//double width = Width.Kstar;
+	double mean = 1.169;
+	double width = 0.024;
+
+	string output_file_name = "../data/Resonances/UnindentPiK1169.root";
+	CheckOutputFile(output_file_name);
+	TFile *output = new TFile(output_file_name.c_str(), "RECREATE");
+	
+	const double pi = 3.14159265359;
+
+	TRandom *rand = new TRandom(seed);
+	
+	double mass, momentum, energy;
+	double theta, alpha;
+	double mom1, mom2, e1, e2;
+	double p1[3], p2[3];
+
+	double progress = 0.;
+
+	TTree *D1 = new TTree("D1", "Daughter1");
+	TTree *D2 = new TTree("D2", "Daughter2");
+
+	D1->Branch("px", &p1[0]);
+	D1->Branch("py", &p1[1]);
+	D1->Branch("pz", &p1[2]);
+
+	D2->Branch("px", &p2[0]);
+	D2->Branch("py", &p2[1]);
+	D2->Branch("pz", &p2[2]);
+
+	TH2D *mass_distr = new TH2D("mass_distr", "mass_distr", 100, 0, 10, 4000, 0, 8);
+	mass_distr->SetDefaultSumw2();
+
+	for (double counter = 0; counter < part_number; counter++)
+	{
+		if (counter/part_number >= progress) {
+			ProgressBar(progress);
+			progress += 0.01;
+		}
+
+		mass = rand->BreitWigner(mean, width);
+		if (mass < m1 + m2) continue;
+		
+		momentum = Tsallis(mass, (unsigned int) counter+seed);
+		energy = sqrt(mass*mass + momentum*momentum);
+
+		const double vel = momentum/energy;
+
+		e1 = (mass*mass + m1*m1 - m2*m2)/(2*mass);
+		e2 = (mass*mass + m2*m2 - m1*m1)/(2*mass);
+		
+		theta = rand->Uniform(pi/2);
+		alpha = rand->Uniform(pi);
+
+		mom1 = sqrt(e1*e1 - m1*m1);
+		mom2 = sqrt(e2*e2 - m2*m2);
+
+		p1[2] = mom1*cos(alpha)*sin(theta)+vel*e1;
+		p2[2] = -mom2*cos(alpha)*sin(theta)+vel*e2;
+
+		p1[0] = mom1*sin(alpha)*sin(theta);
+		p2[0] = -mom2*sin(alpha)*sin(theta);
+
+		p1[1] = mom1*cos(theta);
+		p2[1] = -mom2*cos(theta);
+
+		//computing spherical symmetry angles of a direction of the decayed particle momentum
+		theta = rand->Uniform(pi/2);
+		alpha = rand->Uniform(pi);
+
+		double p1_temp = p1[0];
+		double p2_temp = p2[0];
+
+		//transforming the basis by rotating it around y and then x axis
+		p1[0] = p1_temp*cos(alpha) - p1[1]*sin(alpha);
+		p2[0] = p2_temp*cos(alpha) - p2[1]*sin(alpha);
+
+		p1[1] = p1_temp*sin(alpha) + p1[1]*cos(alpha);
+		p2[1] = p2_temp*sin(alpha) + p2[1]*cos(alpha);
+
+		p1_temp = p1[1];
+		p2_temp = p2[1];
+
+		p1[1] = p1_temp*cos(theta) - p1[2]*sin(theta);
+		p2[1] = p2_temp*cos(theta) - p2[2]*sin(theta);
+
+		p1[2] = p1_temp*sin(theta) + p1[2]*cos(theta);
+		p2[2] = p2_temp*sin(theta) + p2[2]*cos(theta);
+
+		double pT = sqrt(pow(p1[0]+p2[0], 2) + pow(p1[1]+p2[1], 2));
+
+		mass_distr->Fill(pT, mass);
+
+		D1->Fill();
+		D2->Fill();
+	}
+
+	ProgressBar(1);
+	cout << endl;
+
+	D1->Write();
+	D2->Write();
+	mass_distr->Write();
+
+	return 0;
+}
