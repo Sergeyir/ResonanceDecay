@@ -32,7 +32,7 @@ int DecayRes() {
 	TRandom *rand = new TRandom(seed);
 	
 	double mass, momentum, energy;
-	double theta, alpha;
+	double theta, phi;
 	double mom1, mom2, e1, e2;
 	double p1[3], p2[3];
 
@@ -71,33 +71,33 @@ int DecayRes() {
 		e2 = (mass*mass + m2*m2 - m1*m1)/(2*mass);
 		
 		theta = rand->Uniform(pi/2);
-		alpha = rand->Uniform(pi);
+		phi = rand->Uniform(pi);
 
 		mom1 = sqrt(e1*e1 - m1*m1);
 		mom2 = sqrt(e2*e2 - m2*m2);
 
-		p1[2] = mom1*cos(alpha)*sin(theta)+vel*e1;
-		p2[2] = -mom2*cos(alpha)*sin(theta)+vel*e2;
+		p1[2] = mom1*cos(phi)*sin(theta)+vel*e1;
+		p2[2] = -mom2*cos(phi)*sin(theta)+vel*e2;
 
-		p1[0] = mom1*sin(alpha)*sin(theta);
-		p2[0] = -mom2*sin(alpha)*sin(theta);
+		p1[0] = mom1*sin(phi)*sin(theta);
+		p2[0] = -mom2*sin(phi)*sin(theta);
 
 		p1[1] = mom1*cos(theta);
 		p2[1] = -mom2*cos(theta);
 
 		//computing spherical symmetry angles of a direction of the decayed particle momentum
 		theta = rand->Uniform(pi/2);
-		alpha = rand->Uniform(pi);
+		phi = rand->Uniform(pi);
 
 		double p1_temp = p1[0];
 		double p2_temp = p2[0];
 
 		//transforming the basis by rotating it around z and then x axis
-		p1[0] = p1_temp*cos(alpha) - p1[1]*sin(alpha);
-		p2[0] = p2_temp*cos(alpha) - p2[1]*sin(alpha);
+		p1[0] = p1_temp*cos(phi) - p1[1]*sin(phi);
+		p2[0] = p2_temp*cos(phi) - p2[1]*sin(phi);
 
-		p1[1] = p1_temp*sin(alpha) + p1[1]*cos(alpha);
-		p2[1] = p2_temp*sin(alpha) + p2[1]*cos(alpha);
+		p1[1] = p1_temp*sin(phi) + p1[1]*cos(phi);
+		p2[1] = p2_temp*sin(phi) + p2[1]*cos(phi);
 
 		p1_temp = p1[1];
 		p2_temp = p2[1];

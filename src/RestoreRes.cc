@@ -108,7 +108,6 @@ double getMass(const double mom1, const double mom2, const double momentum, cons
 bool checkMom(double *p1, double *p2, const double mass)
 {
 	double mom = 0, energy, vel, phi, theta;
-	double mom1 = 0, mom2 = 0;
 	const double pi = 3.14159265359;
 	double p1_tmp[3], p2_tmp[3];
 
@@ -122,38 +121,37 @@ bool checkMom(double *p1, double *p2, const double mass)
 		p2_tmp[count] = p2[count];
 
 		mom += p*p;
-
-		mom1 += p1[count]*p1[count];
-		mom2 += p2[count]*p2[count];
 	}
 	
-	mom1 = sqrt(mom1);
-	mom2 = sqrt(mom2);
-
-	phi = atan((p1[1]+p2[1])/(p1[0]+p2[0]));
-	theta = acos((p1[2]+p2[2])/sqrt(mom));
-
 	energy = sqrt(mom + mass*mass);
-
 	vel = sqrt(mom)/energy;
 
-	p1[1] = p1_tmp[1]*cos(-theta) + p1_tmp[2]*sin(-theta);
-	p2[1] = p2_tmp[1]*cos(-theta) + p2_tmp[2]*sin(-theta);
+	//transforming the cortesian basis for momentum to be p=pz
+	phi = -atan((p1[1]+p2[1])/(p1[0]+p2[0]));
 
-	p1[2] = p1_tmp[1]*sin(-theta) + p1_tmp[2]*cos(-theta);
-	p2[2] = p2_tmp[1]*sin(-theta) + p2_tmp[2]*cos(-theta);
+	p1[0] = p1_tmp[0]*cos(phi) - p1_tmp[1]*sin(phi);
+	p2[0] = p2_tmp[0]*cos(phi) - p2_tmp[1]*sin(phi);
 
-	p1_tmp[1] = p1[1];
-	p2_tmp[1] = p2[1];
+	p1[1] = p1_tmp[0]*sin(phi) + p1_tmp[1]*cos(phi);
+	p2[1] = p2_tmp[0]*sin(phi) + p2_tmp[1]*cos(phi);
 
-	p1[0] = p1_tmp[0]*cos(-phi) - p1_tmp[1]*sin(-phi);
-	p2[0] = p2_tmp[0]*cos(-phi) - p2_tmp[1]*sin(-phi);
+	p1_tmp[0] = p1[0];
+	p2_tmp[0] = p2[0];
 
-	p1[1] = p1_tmp[0]*sin(-phi) + p1_tmp[1]*cos(-phi);
-	p2[1] = p2_tmp[0]*sin(-phi) + p2_tmp[1]*cos(-phi);
+	phi = -atan((p1[2]+p2[2])/(p1[0]+p2[0]));
 
-	p1[2] = p1[2]-vel*energy;
-	p2[2] = p2[2]-vel*energy;
+	p1[0] = p1_tmp[0]*cos(phi) - p1_tmp[2]*sin(phi);
+	p2[0] = p2_tmp[0]*cos(phi) - p2_tmp[2]*sin(phi);
+
+	p1[2] = p1_tmp[0]*sin(phi) + p1_tmp[2]*cos(phi);
+	p2[2] = p2_tmp[0]*sin(phi) + p2_tmp[2]*cos(phi);
+
+	cout << (p1[0]+p2[0])/sqrt(mom) << " ";
+
+	p1[0] = p1[0]-vel*energy;
+	p2[0] = p2[0]-vel*energy;
+
+	cout << (p1[0]+p2[0])/sqrt(mom) << " ";
 
 	mom = pow(p1[0]+p2[0], 2) + pow(p1[1]+p2[1], 2) + pow(p1[2]+p2[2], 2);
 
