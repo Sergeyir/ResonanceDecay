@@ -9,12 +9,12 @@
 
 void RestoreMass(const string, const double, const double, TH2D *, const int);
 double getMass(const double, const double, const double, const double, const double);
-bool checkMom(double *, double *, const double);
+bool checkMom(double *, double *, const double, const double, const double);
 
 int RestoreRes()
 {
 	const double m1 = Mass.proton;
-	const double m2 = Mass.pion;
+	const double m2 = Mass.kaon;
 
 	string output_file_name = "../output/Resonances/Lambda1520.root";
 
@@ -25,7 +25,7 @@ int RestoreRes()
 
 	//RestoreMass("../data/Resonances/Kstar.root", m1, m2, mass_distr, 1);
 	//RestoreMass("../data/Resonances/UnindentPiK1169.root", m1, m2, mass_distr, 100);
-	RestoreMass("../data/Resonances/Lambda1520.root", m1, m2, mass_distr, 1);
+	RestoreMass("../data/Resonances/Lambda1520_1.root", m1, m2, mass_distr, 1);
 	//RestoreMass("../data/Resonances/Lambda.root", m1, m2, mass_distr, 100);
 
 	mass_distr->Draw();
@@ -81,7 +81,7 @@ void RestoreMass(const string input_file_name, const double m1, const double m2,
 
 		mass = getMass(mom1, mom2, momentum, m1, m2);
 
-		if (!checkMom(p1, p2, mass)) continue;
+		if (!checkMom(p1, p2, mass, m1, m2)) continue;
 
 		double pT = sqrt(pow(p1[0]+p2[0], 2) + pow(p1[1]+p2[1], 2));
 
@@ -105,9 +105,10 @@ double getMass(const double mom1, const double mom2, const double momentum, cons
 	return mass;
 }
 
-bool checkMom(double *p1, double *p2, const double mass)
+bool checkMom(double *p1, double *p2, const double mass, const double m1, const double m2)
 {
-	double mom = 0, energy, vel, phi, theta;
+	double energy, e1, e2, vel, gamma, phi;
+	double mom = 0, mom1 = 0, mom2 = 0;
 	const double pi = 3.14159265359;
 	double p1_tmp[3], p2_tmp[3];
 
@@ -120,12 +121,19 @@ bool checkMom(double *p1, double *p2, const double mass)
 		p1_tmp[count] = p1[count];
 		p2_tmp[count] = p2[count];
 
+		mom1 += p1[count]*p1[count];
+		mom2 += p2[count]*p2[count];
+
 		mom += p*p;
 	}
 	
 	energy = sqrt(mom + mass*mass);
-	vel = sqrt(mom)/energy;
+	e1 = sqrt(mom1 + m1*m1);
+	e2 = sqrt(mom2 + m2*m2);
 
+	vel = sqrt(mom)/energy;
+	gamma = energy/mass;
+/*
 	//transforming the cortesian basis for momentum to be p=pz
 	phi = -atan((p1[1]+p2[1])/(p1[0]+p2[0]));
 
@@ -146,18 +154,29 @@ bool checkMom(double *p1, double *p2, const double mass)
 	p1[2] = p1_tmp[0]*sin(phi) + p1_tmp[2]*cos(phi);
 	p2[2] = p2_tmp[0]*sin(phi) + p2_tmp[2]*cos(phi);
 
-	cout << (p1[0]+p2[0])/sqrt(mom) << " ";
+	p1[0] = (p1[0] - vel*e1)*gamma;
+	p2[0] = (p2[0] - vel*e2)*gamma;
 
-	p1[0] = p1[0]-vel*energy;
-	p2[0] = p2[0]-vel*energy;
+	//cout << mom << " ";
 
-	cout << (p1[0]+p2[0])/sqrt(mom) << " ";
+	mom = p1[0]+p2[0];
+	mom1 = p1[0];
+	mom2 = p2[0];
 
-	mom = pow(p1[0]+p2[0], 2) + pow(p1[1]+p2[1], 2) + pow(p1[2]+p2[2], 2);
+	e1 = sqrt(mom1*mom1 + m1*m1);
+	e2 = sqrt(mom2*mom2 + m2*m2);
+	*/
 
-	cout << mom << endl;
+	energy = (energy - vel*mom);
 
-	if (mom < 0.1) return true;
+	cout << energy - mass << endl;
+
+	double e1_true = (mass*mass + m1*m1 - m2*m2)/(2*mass);
+	double e2_true = (mass*mass + m2*m2 - m1*m1)/(2*mass);
+
+	//cout << mom << " " << e1 - e1_true << " " << e2 - e2_true << endl;
+
+	if (abs(e1 - e1_true) < 0.1 && abs (e2 - e2_true) < 0.1) return true;
 
 	return false;
 }

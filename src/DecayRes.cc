@@ -12,18 +12,18 @@
 int DecayRes() {
 	
 	//parameters
-	double part_number = 1E6;
+	double part_number = 1E5;
 	const int seed = 1;
 
 	double m1 = Mass.proton;
-	double m2 = Mass.pion;
+	double m2 = Mass.kaon;
 
-	//double mean = Mass.Kstar;
-	//double width = Width.Kstar;
-	double mean = 1.169;
-	double width = 0.024;
+	double mean = Mass.Lambda1520;
+	double width = Width.Lambda1520;
+	//double mean = 1.169;
+	//double width = 0.024;
 
-	string output_file_name = "../data/Resonances/UnindentPiK1169.root";
+	string output_file_name = "../data/Resonances/Lambda1520_1.root";
 	CheckOutputFile(output_file_name);
 	TFile *output = new TFile(output_file_name.c_str(), "RECREATE");
 	
@@ -65,28 +65,38 @@ int DecayRes() {
 		momentum = Tsallis(mass, (unsigned int) counter+seed);
 		energy = sqrt(mass*mass + momentum*momentum);
 
-		const double vel = momentum/energy;
-
 		e1 = (mass*mass + m1*m1 - m2*m2)/(2*mass);
 		e2 = (mass*mass + m2*m2 - m1*m1)/(2*mass);
-		
+
+		const double vel = momentum/energy*0;
+		const double gamma = energy/mass;
+
 		theta = rand->Uniform(pi/2);
 		phi = rand->Uniform(pi);
 
 		mom1 = sqrt(e1*e1 - m1*m1);
 		mom2 = sqrt(e2*e2 - m2*m2);
 
-		p1[2] = mom1*cos(phi)*sin(theta)+vel*e1;
-		p2[2] = -mom2*cos(phi)*sin(theta)+vel*e2;
+		p1[0] = mom1*cos(phi)*sin(theta);
+		p2[0] = -mom2*cos(phi)*sin(theta);
 
-		p1[0] = mom1*sin(phi)*sin(theta);
-		p2[0] = -mom2*sin(phi)*sin(theta);
+		p1[1] = mom1*sin(phi)*sin(theta);
+		p2[1] = -mom2*sin(phi)*sin(theta);
 
-		p1[1] = mom1*cos(theta);
-		p2[1] = -mom2*cos(theta);
+		p1[2] = mom1*cos(theta) + vel*energy;
+		p2[2] = -mom2*cos(theta) + vel*energy;
+
+		mom1 = 0;
+		mom2 = 0;
+		for (auto p : p1) mom1 += p*p;
+		for (auto p : p2) mom2 += p*p;
+
+		e1 = sqrt(m1*m1 + mom1);
+		e2 = sqrt(m2*m2 + mom2);
+
+		cout << mass - (e1 + e2) << " ";
 
 		//computing spherical symmetry angles of a direction of the decayed particle momentum
-		theta = rand->Uniform(pi/2);
 		phi = rand->Uniform(pi);
 
 		double p1_temp = p1[0];
@@ -102,11 +112,23 @@ int DecayRes() {
 		p1_temp = p1[1];
 		p2_temp = p2[1];
 
-		p1[1] = p1_temp*cos(theta) - p1[2]*sin(theta);
-		p2[1] = p2_temp*cos(theta) - p2[2]*sin(theta);
+		phi = rand->Uniform(pi);
 
-		p1[2] = p1_temp*sin(theta) + p1[2]*cos(theta);
-		p2[2] = p2_temp*sin(theta) + p2[2]*cos(theta);
+		p1[1] = p1_temp*cos(phi) - p1[2]*sin(phi);
+		p2[1] = p2_temp*cos(phi) - p2[2]*sin(phi);
+
+		p1[2] = p1_temp*sin(phi) + p1[2]*cos(phi);
+		p2[2] = p2_temp*sin(phi) + p2[2]*cos(phi);
+
+		mom1 = 0;
+		mom2 = 0;
+		for (auto p : p1) mom1 += p*p;
+		for (auto p : p2) mom2 += p*p;
+
+		e1 = sqrt(m1*m1 + mom1);
+		e2 = sqrt(m2*m2 + mom2);
+
+		cout << energy - e1 - e2 << endl;
 
 		double pT = sqrt(pow(p1[0]+p2[0], 2) + pow(p1[1]+p2[1], 2));
 
