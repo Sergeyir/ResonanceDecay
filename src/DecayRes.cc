@@ -12,18 +12,18 @@
 int DecayRes() {
 	
 	//parameters
-	double part_number = 1E5;
+	double part_number = 1E6;
 	const int seed = 1;
 
 	double m1 = Mass.proton;
-	double m2 = Mass.kaon;
+	double m2 = Mass.pion;
 
-	double mean = Mass.Lambda1520;
-	double width = Width.Lambda1520;
-	//double mean = 1.169;
-	//double width = 0.024;
+	//double mean = Mass.Lambda;
+	//double width = Width.Lambda;
+	double mean = 1.169;
+	double width = 0.024;
 
-	string output_file_name = "../data/Resonances/Lambda1520_1.root";
+	string output_file_name = "../data/Resonances/UnindentPPi1169.root";
 	CheckOutputFile(output_file_name);
 	TFile *output = new TFile(output_file_name.c_str(), "RECREATE");
 	
@@ -62,13 +62,14 @@ int DecayRes() {
 		mass = rand->BreitWigner(mean, width);
 		if (mass < m1 + m2) continue;
 		
-		momentum = Tsallis(mass, (unsigned int) counter+seed);
+		momentum = Tsallis(mass, (unsigned int) counter + seed + mass);
+
 		energy = sqrt(mass*mass + momentum*momentum);
 
 		e1 = (mass*mass + m1*m1 - m2*m2)/(2*mass);
 		e2 = (mass*mass + m2*m2 - m1*m1)/(2*mass);
 
-		const double vel = momentum/energy*0;
+		const double vel = momentum/energy;
 		const double gamma = energy/mass;
 
 		theta = rand->Uniform(pi/2);
@@ -83,8 +84,11 @@ int DecayRes() {
 		p1[1] = mom1*sin(phi)*sin(theta);
 		p2[1] = -mom2*sin(phi)*sin(theta);
 
-		p1[2] = mom1*cos(theta) + vel*energy;
-		p2[2] = -mom2*cos(theta) + vel*energy;
+		p1[2] = mom1*cos(theta);
+		p2[2] = -mom2*cos(theta);
+
+		p1[2] = gamma*(p1[2] + vel*e1);
+		p2[2] = gamma*(p2[2] + vel*e2);
 
 		mom1 = 0;
 		mom2 = 0;
@@ -93,8 +97,6 @@ int DecayRes() {
 
 		e1 = sqrt(m1*m1 + mom1);
 		e2 = sqrt(m2*m2 + mom2);
-
-		cout << mass - (e1 + e2) << " ";
 
 		//computing spherical symmetry angles of a direction of the decayed particle momentum
 		phi = rand->Uniform(pi);
@@ -127,8 +129,6 @@ int DecayRes() {
 
 		e1 = sqrt(m1*m1 + mom1);
 		e2 = sqrt(m2*m2 + mom2);
-
-		cout << energy - e1 - e2 << endl;
 
 		double pT = sqrt(pow(p1[0]+p2[0], 2) + pow(p1[1]+p2[1], 2));
 

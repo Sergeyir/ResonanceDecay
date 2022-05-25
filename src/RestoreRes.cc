@@ -23,10 +23,10 @@ int RestoreRes()
 	TFile *output_file = new TFile(output_file_name.c_str(), "RECREATE");
 	TH2D *mass_distr = new TH2D("mass_distr", "mass_distr", 100, 0, 10, 4000, 0, 8);
 
-	//RestoreMass("../data/Resonances/Kstar.root", m1, m2, mass_distr, 1);
-	//RestoreMass("../data/Resonances/UnindentPiK1169.root", m1, m2, mass_distr, 100);
-	RestoreMass("../data/Resonances/Lambda1520_1.root", m1, m2, mass_distr, 1);
-	//RestoreMass("../data/Resonances/Lambda.root", m1, m2, mass_distr, 100);
+	RestoreMass("../data/Resonances/Kstar.root", m1, m2, mass_distr, 1000);
+	RestoreMass("../data/Resonances/UnindentPPi1169.root", m1, m2, mass_distr, 10000);
+	RestoreMass("../data/Resonances/Lambda1520.root", m1, m2, mass_distr, 10);
+	RestoreMass("../data/Resonances/Lambda.root", m1, m2, mass_distr, 1000);
 
 	mass_distr->Draw();
 	mass_distr->Write();
@@ -127,14 +127,14 @@ bool checkMom(double *p1, double *p2, const double mass, const double m1, const 
 		mom += p*p;
 	}
 	
-	energy = sqrt(mom + mass*mass);
 	e1 = sqrt(mom1 + m1*m1);
 	e2 = sqrt(mom2 + m2*m2);
+	energy = e1 + e2;
 
 	vel = sqrt(mom)/energy;
 	gamma = energy/mass;
-/*
-	//transforming the cortesian basis for momentum to be p=pz
+
+	//transforming the cortesian basis for momentum to be p=px
 	phi = -atan((p1[1]+p2[1])/(p1[0]+p2[0]));
 
 	p1[0] = p1_tmp[0]*cos(phi) - p1_tmp[1]*sin(phi);
@@ -154,29 +154,18 @@ bool checkMom(double *p1, double *p2, const double mass, const double m1, const 
 	p1[2] = p1_tmp[0]*sin(phi) + p1_tmp[2]*cos(phi);
 	p2[2] = p2_tmp[0]*sin(phi) + p2_tmp[2]*cos(phi);
 
-	p1[0] = (p1[0] - vel*e1)*gamma;
-	p2[0] = (p2[0] - vel*e2)*gamma;
+	e1 = gamma*(e1 - vel*abs(p1[0]));
+	e2 = gamma*(e2 - vel*abs(p2[0]));
 
-	//cout << mom << " ";
-
-	mom = p1[0]+p2[0];
-	mom1 = p1[0];
-	mom2 = p2[0];
-
-	e1 = sqrt(mom1*mom1 + m1*m1);
-	e2 = sqrt(mom2*mom2 + m2*m2);
-	*/
-
-	energy = (energy - vel*mom);
-
-	cout << energy - mass << endl;
+	energy = e1 + e2;
 
 	double e1_true = (mass*mass + m1*m1 - m2*m2)/(2*mass);
 	double e2_true = (mass*mass + m2*m2 - m1*m1)/(2*mass);
 
-	//cout << mom << " " << e1 - e1_true << " " << e2 - e2_true << endl;
-
-	if (abs(e1 - e1_true) < 0.1 && abs (e2 - e2_true) < 0.1) return true;
+	if (abs(e1 - e1_true) < 0.001 && abs (e2 - e2_true) < 0.001) {
+		//cout << mass << " " << energy - mass << " " << e1 - e1_true << " " << e2 - e2_true << endl;
+		return true;
+	}
 
 	return false;
 }
