@@ -15,15 +15,15 @@ int DecayRes() {
 	double part_number = 1E6;
 	const int seed = 1;
 
-	double m1 = Mass.proton;
+	double m1 = Mass.kaon;
 	double m2 = Mass.pion;
 
-	//double mean = Mass.Lambda;
-	//double width = Width.Lambda;
-	double mean = 1.169;
-	double width = 0.024;
+	double mean = Mass.Kstar;
+	double width = Width.Kstar;
+	//double mean = 1.169;
+	//double width = 0.024;
 
-	string output_file_name = "../data/Resonances/UnindentPPi1169.root";
+	string output_file_name = "../data/Resonances/Kstar.root";
 	CheckOutputFile(output_file_name);
 	TFile *output = new TFile(output_file_name.c_str(), "RECREATE");
 	

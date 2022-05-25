@@ -9,7 +9,7 @@
 
 void RestoreMass(const string, const double, const double, TH2D *, const int);
 double getMass(const double, const double, const double, const double, const double);
-bool checkMom(double *, double *, const double, const double, const double);
+bool checkEnergy(double *, double *, const double, const double, const double);
 
 int RestoreRes()
 {
@@ -23,10 +23,10 @@ int RestoreRes()
 	TFile *output_file = new TFile(output_file_name.c_str(), "RECREATE");
 	TH2D *mass_distr = new TH2D("mass_distr", "mass_distr", 100, 0, 10, 4000, 0, 8);
 
-	RestoreMass("../data/Resonances/Kstar.root", m1, m2, mass_distr, 1000);
-	RestoreMass("../data/Resonances/UnindentPPi1169.root", m1, m2, mass_distr, 10000);
+	//RestoreMass("../data/Resonances/Kstar.root", m1, m2, mass_distr, 1000);
+	RestoreMass("../data/Resonances/UnindentPPi1169.root", m1, m2, mass_distr, 100);
 	RestoreMass("../data/Resonances/Lambda1520.root", m1, m2, mass_distr, 10);
-	RestoreMass("../data/Resonances/Lambda.root", m1, m2, mass_distr, 1000);
+	//RestoreMass("../data/Resonances/Lambda.root", m1, m2, mass_distr, 1000);
 
 	mass_distr->Draw();
 	mass_distr->Write();
@@ -81,11 +81,12 @@ void RestoreMass(const string input_file_name, const double m1, const double m2,
 
 		mass = getMass(mom1, mom2, momentum, m1, m2);
 
-		if (!checkMom(p1, p2, mass, m1, m2)) continue;
-
 		double pT = sqrt(pow(p1[0]+p2[0], 2) + pow(p1[1]+p2[1], 2));
+		if (pT < 0.6) continue;
 
-		mass_distr->Fill(pT, mass, weight);
+		if (!checkEnergy(p1, p2, mass, m1, m2)) continue;
+
+		mass_distr->Fill(pT, mass, weight*2);
 	}
 
 	ProgressBar(1);
@@ -105,7 +106,7 @@ double getMass(const double mom1, const double mom2, const double momentum, cons
 	return mass;
 }
 
-bool checkMom(double *p1, double *p2, const double mass, const double m1, const double m2)
+bool checkEnergy(double *p1, double *p2, const double mass, const double m1, const double m2)
 {
 	double energy, e1, e2, vel, gamma, phi;
 	double mom = 0, mom1 = 0, mom2 = 0;
