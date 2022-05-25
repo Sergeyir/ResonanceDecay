@@ -7,7 +7,7 @@
 #include "../lib/ErrorHandler.h"
 #include "../utils/ProgressBar.cc"
 
-void RestoreMass(const string, const double, const double, TH2D *, const int);
+void RestoreMass(const string, const double, const double, TH2D *, const double);
 double getMass(const double, const double, const double, const double, const double);
 bool checkEnergy(double *, double *, const double, const double, const double);
 
@@ -23,10 +23,10 @@ int RestoreRes()
 	TFile *output_file = new TFile(output_file_name.c_str(), "RECREATE");
 	TH2D *mass_distr = new TH2D("mass_distr", "mass_distr", 100, 0, 10, 4000, 0, 8);
 
-	//RestoreMass("../data/Resonances/Kstar.root", m1, m2, mass_distr, 1000);
-	RestoreMass("../data/Resonances/UnindentPPi1169.root", m1, m2, mass_distr, 100);
-	RestoreMass("../data/Resonances/Lambda1520.root", m1, m2, mass_distr, 10);
-	//RestoreMass("../data/Resonances/Lambda.root", m1, m2, mass_distr, 1000);
+	//RestoreMass("../data/Resonances/Kstar.root", m1, m2, mass_distr, 10);
+	//RestoreMass("../data/Resonances/UnindentPPi1169.root", m1, m2, mass_distr, 10);
+	RestoreMass("../data/Resonances/Lambda1520.root", m1, m2, mass_distr, 0.1);
+	//RestoreMass("../data/Resonances/Lambda.root", m1, m2, mass_distr, 0.1);
 
 	mass_distr->Draw();
 	mass_distr->Write();
@@ -34,7 +34,7 @@ int RestoreRes()
 	return 0;
 }
 
-void RestoreMass(const string input_file_name, const double m1, const double m2, TH2D *mass_distr, const int weight = 1)
+void RestoreMass(const string input_file_name, const double m1, const double m2, TH2D *mass_distr, const double weight = 1)
 {
 	cout << "Restoring from file " << input_file_name << endl;
 
@@ -84,7 +84,7 @@ void RestoreMass(const string input_file_name, const double m1, const double m2,
 		double pT = sqrt(pow(p1[0]+p2[0], 2) + pow(p1[1]+p2[1], 2));
 		if (pT < 0.6) continue;
 
-		if (!checkEnergy(p1, p2, mass, m1, m2)) continue;
+	//	if (!checkEnergy(p1, p2, mass, m1, m2)) continue;
 
 		mass_distr->Fill(pT, mass, weight*2);
 	}
