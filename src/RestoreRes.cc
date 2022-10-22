@@ -10,7 +10,7 @@
 struct
 {
 	std::vector<std::string> part_name;
-	std::vector<float> m1, m2, channel_fract;
+	std::vector<float> m1, m2, weight;
 } Par;
 
 void AddEntry(std::string, float, float, float, bool = true);
@@ -187,13 +187,18 @@ void AddEntry(std::string part_name, const float m1, const float m2, const float
 	Par.part_name.push_back(part_name);
 	Par.m1.push_back(m1);
 	Par.m2.push_back(m2);
-	Par.channel_fract.push_back(channel_fract);
+	
 
 	//adding antiparticles
 	if (do_antipart == true && m1 != m2)
 	{
+		Par.weight.push_back(channel_fract);
 		std::string antipart_name = "anti" + part_name;
 		AddEntry(antipart_name, m1, m2, channel_fract, false);
+	}
+	else
+	{
+		Par.weight.push_back(channel_fract*2.);
 	}
 }
 

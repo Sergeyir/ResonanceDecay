@@ -165,7 +165,7 @@ void Init(std::string part_name, const float mean, const float sigma, const floa
 	std::string output_file_name = "../data/" + part_name + ".root";
 	CheckOutputFile(output_file_name);
 	TFile *output = new TFile(output_file_name.c_str(), "RECREATE");
-	std::cout OutputColor.BoldGren << "Info: " << OutputColor.reset << "Generating " << part_number << " particles with the name: " << part_name << endl;
+	std::cout << OutputColor.bold_green << "Info:" << OutputColor.reset << " Generating " << part_number << " particles with the name: " << part_name << std::endl;
 
 	TRandom *rand = new TRandom(seed);
 	
