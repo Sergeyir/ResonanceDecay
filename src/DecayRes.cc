@@ -4,30 +4,49 @@
 #include "TH2.h"
 #include "../lib/Particles.h"
 #include "../lib/ErrorHandler.h"
-#include "../utils/ProgressBar.cc"
+#include "../lib/ProgressBar.h"
 #include "../func/Tsallis.cc"
 #include "TTree.h"
 #include "TFile.h"
 
-int DecayRes() {
+const double pi = 3.14159265359;
+
+struct
+{
+	const float pion = 0.134957; 
+	const float kaon = 0.493677; 
+	const float proton = 0.938272; 
+	const float electron = 0.134957; 
+} Mass;
+
+void Init(std::string, const float, const float, const float, const float, const int);
+
+int DecayRes()
+{
+	//light unflavored mesons
+	Init("rho770", 0.775, 149E-3, Mass.pion, Mass.pion);
+	Init("omega782", 0.782, 8.68E-3, Mass.pion, Mass.pion);
+	Init("phi1020", 1.019, 4.29-3, Mass.kaon, Mass.kaon);
+	Init("f2_1270", 1.2755, 186.7E-3, Mass.pion, Mass.pion);
+	Init("a2_1320", 1.3182, 105E-3, Mass.kaon, Mass.kaon);
+	Init("f2_1430", 1.43, 46E-3, Mass.kaon, Mass.kaon);
+	Init("a0_1450", 1.474, 265E-3, Mass.kaon, Mass.kaon);
+	Init("f0_1500_pipi", 1.506, 112E-3, Mass.pion, Mass.pion);
+	Init("f0_1500_kk", 1.506, 112E-3, Mass.kaon, Mass.kaon);
+	Init("f2p_1525_pipi", 1.5174, 86E-3, Mass.pion, Mass.pion);
+	Init("f2p_1525_kk", 1.5174, 86E-3, Mass.kaon, Mass.kaon);
 	
-	//parameters
-	double part_number = 1E6;
-	const int seed = 1;
+	return 0;
+}
 
-	double m1 = Mass.kaon;
-	double m2 = Mass.pion;
-
-	double mean = Mass.Kstar;
-	double width = Width.Kstar;
-	//double mean = 1.169;
-	//double width = 0.024;
-
-	string output_file_name = "../data/Resonances/Kstar.root";
+void Init(std::string name, const float mean, const float sigma, const float m1, const float m2, const int part_number = 1E5, const int seed = 1)
+{
+	
+	std::string output_file_name = "../data/" + name + ".root";
 	CheckOutputFile(output_file_name);
 	TFile *output = new TFile(output_file_name.c_str(), "RECREATE");
-	
-	const double pi = 3.14159265359;
+
+	std::cout << "Writing data in file " << output_file_name << endl;
 
 	TRandom *rand = new TRandom(seed);
 	
@@ -35,8 +54,6 @@ int DecayRes() {
 	double theta, phi;
 	double mom1, mom2, e1, e2;
 	double p1[3], p2[3];
-
-	double progress = 0.;
 
 	TTree *D1 = new TTree("D1", "Daughter1");
 	TTree *D2 = new TTree("D2", "Daughter2");
@@ -52,12 +69,9 @@ int DecayRes() {
 	TH2D *mass_distr = new TH2D("mass_distr", "mass_distr", 100, 0, 10, 4000, 0, 8);
 	mass_distr->SetDefaultSumw2();
 
-	for (double counter = 0; counter < part_number; counter++)
+	for (int counter = 0; counter < part_number; counter++)
 	{
-		if (counter/part_number >= progress) {
-			ProgressBar(progress);
-			progress += 0.01;
-		}
+		ProgressBar.Block2((float) (counter+1.)/part_number);
 
 		mass = rand->BreitWigner(mean, width);
 		if (mass < m1 + m2) continue;
@@ -138,12 +152,9 @@ int DecayRes() {
 		D2->Fill();
 	}
 
-	ProgressBar(1);
-	cout << endl;
-
 	D1->Write();
 	D2->Write();
 	mass_distr->Write();
 
-	return 0;
+
 }

@@ -5,7 +5,7 @@
 #include "TTree.h"
 #include "../lib/Particles.h"
 #include "../lib/ErrorHandler.h"
-#include "../utils/ProgressBar.cc"
+#include "../lib/ProgressBar.cc"
 
 void RestoreMass(const string, const double, const double, TH2D *, const double);
 double getMass(const double, const double, const double, const double, const double);
@@ -13,8 +13,8 @@ bool checkEnergy(double *, double *, const double, const double, const double);
 
 int RestoreRes()
 {
-	const double m1 = Mass.proton;
-	const double m2 = Mass.kaon;
+	const double m1 = Mass.kaon;
+	const double m2 = Mass.pion;
 
 	string output_file_name = "../output/Resonances/Lambda1520.root";
 
@@ -23,10 +23,27 @@ int RestoreRes()
 	TFile *output_file = new TFile(output_file_name.c_str(), "RECREATE");
 	TH2D *mass_distr = new TH2D("mass_distr", "mass_distr", 100, 0, 10, 4000, 0, 8);
 
-	//RestoreMass("../data/Resonances/Kstar.root", m1, m2, mass_distr, 10);
+	RestoreMass("../data/Resonances/Rho770.root", m1, m2, mass_distr, 1);
+	RestoreMass("../data/Resonances/Omega782.root", m1, m2, mass_distr, 0.015);
+	RestoreMass("../data/Resonances/phi1020.root", m1, m2, mass_distr, 1);
+	RestoreMass("../data/Resonances/f2_1270.root", m1, m2, mass_distr, 0.84);
+	RestoreMass("../data/Resonances/a2_1320.root", m1, m2, mass_distr, 0.049);
+	RestoreMass("../data/Resonances/a0_1450.root", m1, m2, mass_distr, 1);
+	RestoreMass("../data/Resonances/f0_1500_pipi.root", m1, m2, mass_distr, 0.08);
+	RestoreMass("../data/Resonances/f0_1500_kk.root", m1, m2, mass_distr, 0.345);
+	RestoreMass("../data/Resonances/f2p_1525_pipi.root", m1, m2, mass_distr, 0.083);
+	RestoreMass("../data/Resonances/f2p_1525_kk.root", m1, m2, mass_distr, 0.876);
+	
+	RestoreMass("../data/Resonances/KS.root", m1, m2, mass_distr, 0.692);
+	RestoreMass("../data/Resonances/Kstar700.root", m1, m2, mass_distr, 1);
+	RestoreMass("../data/Resonances/Kstar.root", m1, m2, mass_distr, 1);
+	RestoreMass("../data/Resonances/Kstar1410.root", m1, m2, mass_distr, 0.066);
+	RestoreMass("../data/Resonances/Kstar0_1430.root", m1, m2, mass_distr, 0.93);
+	RestoreMass("../data/Resonances/Kstar2_1430.root", m1, m2, mass_distr, 0.499);
 	//RestoreMass("../data/Resonances/UnindentPPi1169.root", m1, m2, mass_distr, 10);
-	RestoreMass("../data/Resonances/Lambda1520.root", m1, m2, mass_distr, 0.1);
-	//RestoreMass("../data/Resonances/Lambda.root", m1, m2, mass_distr, 0.1);
+	//RestoreMass("../data/Resonances/Lambda1520.root", m1, m2, mass_distr, 1);
+	//RestoreMass("../data/Resonances/Lambda.root", m1, m2, mass_distr, 10);
+	//RestoreMass("../data/Resonances/Kstar.root", m1, m2, mass_distr, 1);
 
 	mass_distr->Draw();
 	mass_distr->Write();
@@ -53,13 +70,7 @@ void RestoreMass(const string input_file_name, const double m1, const double m2,
 	float progress = 0;
 	for (double counter = 0; counter < res_num; counter++)
 	{
-		if (counter/res_num >= progress)
-		{
-	
-			ProgressBar(progress);
-			progress+=0.01;
-
-		}
+		ProgressBar.Block3((float) (counter + 1.)/res_num);
 
 		D1->GetEntry(static_cast<unsigned long>(counter));
 		D2->GetEntry(static_cast<unsigned long>(counter));
@@ -84,12 +95,10 @@ void RestoreMass(const string input_file_name, const double m1, const double m2,
 		double pT = sqrt(pow(p1[0]+p2[0], 2) + pow(p1[1]+p2[1], 2));
 		if (pT < 0.6) continue;
 
-	//	if (!checkEnergy(p1, p2, mass, m1, m2)) continue;
+		//if (checkEnergy(p1, p2, mass, m1, m2)) continue;
 
 		mass_distr->Fill(pT, mass, weight*2);
 	}
-
-	ProgressBar(1);
 
 	cout << endl;
 
