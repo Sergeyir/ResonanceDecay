@@ -1,6 +1,5 @@
 #include "TMath.h"
   
-  
    Double_t Tsallis(Double_t m, int seed)
 {
 	TRandom *r = new TRandom(seed);
