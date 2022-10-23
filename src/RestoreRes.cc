@@ -15,20 +15,19 @@ struct
 	std::vector<float> m1, m2, weight;
 } Par;
 
-void AddEntry(std::string, float, float, float = 1, bool = 1);
+void AddEntry(std::string, const float, const float, const float = 1, bool = 1);
 
-void Init(TH2F *, TFile *);
-	
-void RestoreMass(const string, const float, const float, TH2F *, TFile *, const float = 1);
+void RestoreMass(const string, const float, const float, TH2F *, TFile *, float = 1);
 
 float GetMass(const float, const float, const float, const float, const float);
 
 int RestoreRes()
 {
-	const float m1 = Mass.proton;
-	const float m2 = Mass.kaon;
+	gStyle->SetPalette(kVisibleSpectrum);
+	const float m1 = Mass.kaon;
+	const float m2 = Mass.pion;
 
-	std::string channel = "pk";
+	std::string channel = "nopid";
 
 	string output_file_name = "../output/" + channel + ".root";
 
@@ -53,7 +52,7 @@ int RestoreRes()
 		AddEntry("KS", m1, m2, 0.1);
 	}
 	
-	if (channel == "kpi" || channel == "nopid")
+	if (channel == "kpi" || channel == "pik" || channel == "nopid")
 	{
 		//charmed mesons
 		AddEntry("D0", m1, m2);
@@ -110,7 +109,7 @@ int RestoreRes()
 	//-----------------------------------------//
 
 	//kpi channel -----------------------------//
-	if (channel == "kpi" || channel == "nopid")
+	if (channel == "kpi" || channel == "pik" || channel == "nopid")
 	{
 		//strange mesons
 		AddEntry("Kstar700", m1, m2);
@@ -142,7 +141,7 @@ int RestoreRes()
 	//-----------------------------------------//
 
 	//ppi channel -----------------------------//
-	if (channel == "ppi" || channel == "nopid")
+	if (channel == "ppi" || channel == "pip" || channel == "nopid")
 	{
 		//delta baryons
 		AddEntry("Delta1232", m1, m2);
@@ -170,24 +169,24 @@ int RestoreRes()
 	//-----------------------------------------//
 	
 	//pk channel ------------------------------//
-	if (channel == "pk" || channel == "nopid")
+	if (channel == "pk" || channel == "kp" || channel == "nopid")
 	{
 		//N baryons
 		AddEntry("N1440", m1, m2);
 		AddEntry("N1520", m1, m2);
-		AddEntry("N1535", m1, m);
+		AddEntry("N1535", m1, m2);
 		AddEntry("N1650", m1, m2);
-		AddEntry("N1650", m1, m);
+		AddEntry("N1650", m1, m2);
 		AddEntry("N1680", m1, m2);
 		AddEntry("N1700", m1, m2);
-		AddEntry("N1710", m1, m2,);
+		AddEntry("N1710", m1, m2);
 		AddEntry("N1720", m1, m2);
 		AddEntry("N1860", m1, m2);
 		AddEntry("N1880", m1, m2);
 		AddEntry("N1895", m1, m2);
 		AddEntry("N1900", m1, m2);
-		AddEntry("N2000", m1, m2,);
-		AddEntry("N1990", m1, m2,);
+		AddEntry("N2000", m1, m2);
+		AddEntry("N1990", m1, m2);
 		AddEntry("N2060", m1, m2);
 		AddEntry("N2100", m1, m2);
 		AddEntry("N2120", m1, m2);
@@ -259,16 +258,20 @@ int RestoreRes()
 	//-----------------------------------------//
 
 	TFile *output_file = new TFile(output_file_name.c_str(), "RECREATE");
+	
+	for (int count = 0; count < Par.m1.size(); count++)
+	{
+		cout << OutputColor.bold_green << "[" << count+1 << " out of " << Par.m1.size() << "] " << OutputColor.reset << "Restoring ";
+		RestoreMass(Par.part_name[count], Par.m1[count], Par.m2[count], mass_distr, output_file, Par.weight[count]);
+	}
 
-	Init(mass_distr, output_file);
-
-	mass_distr->Draw();
+	mass_distr->Draw("COL");
 	mass_distr->Write();
 	
 	return 0;
 }
 
-void AddEntry(std::string part_name, const float m1, const float m2, bool do_antipart = true, const float channel_fract = 1.)
+void AddEntry(std::string part_name, const float m1, const float m2, const float weight = 1, bool do_antipart = true)
 {
 	std::string input_file_name = "../data/" + part_name + ".root";
 	CheckInputFile(input_file_name);
@@ -281,26 +284,17 @@ void AddEntry(std::string part_name, const float m1, const float m2, bool do_ant
 	//adding antiparticles
 	if (do_antipart == true)
 	{
-		Par.weight.push_back(channel_fract);
+		Par.weight.push_back(weight);
 		std::string antipart_name = "anti" + part_name;
-		AddEntry(antipart_name, m2, m1, false, channel_fract);
+		AddEntry(antipart_name, m2, m1, weight, false);
 	}
 	else
 	{
-		Par.weight.push_back(channel_fract*2.);
+		Par.weight.push_back(weight);
 	}
 }
 
-void Init(TH2F *mass_distr, TFile *output_file)
-{
-	for (int count = 0; count < Par.m1.size(); count++)
-	{
-		cout << OutputColor.bold_green << "[" << count+1 << " out of " << Par.m1.size() << "] " << OutputColor.reset << "Restoring ";
-		RestoreMass(Par.part_name[count], Par.m1[count], Par.m2[count], mass_distr, output_file, Par.weight[count]);
-	}
-}
-
-void RestoreMass(std::string part_name, const float m1, const float m2, TH2F *mass_distr, TFile *output_file, const float weight = 1)
+void RestoreMass(std::string part_name, const float m1, const float m2, TH2F *mass_distr, TFile *output_file, float weight = 1)
 {
 	std::string input_file_name = "../data/" + part_name + ".root";
 	TFile *input_file = new TFile(input_file_name.c_str(), "READ");
@@ -317,6 +311,10 @@ void RestoreMass(std::string part_name, const float m1, const float m2, TH2F *ma
 	float momentum, mass, pT;
 
 	float progress = 0;
+
+	TH1F *stat = (TH1F*) input_file->Get("stat");
+
+	weight *= stat->GetBinContent(5);
 
 	TH2F part_distr = TH2F(part_name.c_str(), part_name.c_str(), 100, 0, 10, 6000, 0, 12);
 	
@@ -347,8 +345,6 @@ void RestoreMass(std::string part_name, const float m1, const float m2, TH2F *ma
 		float pT = sqrt(pow(p1[0]+p2[0], 2) + pow(p1[1]+p2[1], 2));
 		if (pT < 0.6) continue;
 
-		//if (checkEnergy(p1, p2, mass, m1, m2)) continue;
-
 		mass_distr->Fill(pT, mass, weight);
 		part_distr.Fill(pT, mass, weight);
 	}
@@ -358,7 +354,7 @@ void RestoreMass(std::string part_name, const float m1, const float m2, TH2F *ma
 	output_file->cd();
 	part_distr.Write();
 
-	delete input_file, D1, D2;	
+	delete input_file;	
 }
 
 float GetMass(const float mom1, const float mom2, const float momentum, const float m1, const float m2)
