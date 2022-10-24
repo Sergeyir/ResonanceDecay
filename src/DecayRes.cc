@@ -10,14 +10,16 @@
 #include "../lib/ErrorHandler.h"
 #include "../lib/ProgressBar.h"
 #include "../func/Tsallis.cc"
+#include "../lib/Time.h"
 
 const double pi = 3.14159265359;
 
 struct
 {
 	std::vector<std::string> name;
-	std::vector<float> mean, sigma, m1, m2;
+	std::vector<float> mean, sigma, m1, m2, mode;
 	std::vector<int> number, seed;
+	std::vector<std::string> channel;
 } Part;
 
 void AddEntry(std::string, const float, const float, const float, const float, const int, const float = 1, const int = 1, bool = true);
@@ -26,7 +28,7 @@ void Init(std::string, const float, const float, const float, const float, const
 
 int DecayRes()
 {
-	const int part_number = 1e4;
+	const int part_number = 1e5;
 	
 	//light unflavored mesons
 	AddEntry("rho770", 0.775, 149E-3, Mass.pion, Mass.pion, part_number, 1);
@@ -167,18 +169,50 @@ int DecayRes()
 	AddEntry("Sigma2110", 2.105, 313E-3, Mass.proton, Mass.kaon, part_number, 0.065);
 	AddEntry("Sigma2230", 2.24, 345E-3, Mass.proton, Mass.kaon, part_number, 0.03);
 	AddEntry("Sigma2250", 2.245, 105E-3, Mass.proton, Mass.kaon, part_number, 0.03);
+	
+	unsigned int sum = 0;
 
-	for (int counter = 0; counter < Part.m1.size(); counter++)
+	unsigned int done = 0;
+
+	std::cout << "Particles that will be generated: " << std::endl << std::endl; 
+	
+	std::cout << "	Name	mean(GeV)	sigma(GeV)	channel	mode" << std::endl; 
+	
+	for (int i = 0; i < Part.m1.size(); i++)
 	{
-		std::cout << OutputColor.bold_green << "[" << counter + 1 << " out of " << Part.m1.size() << "]" << OutputColor.reset << " Generating " << static_cast<int>(Part.number[counter]*Part.sigma[counter]*10) << " particles with the name: " << Part.name[counter] << std::endl;
+		std::cout << "	" << Part.name[i] << "	" << Part.mean[i] << "	" << Part.sigma[i] << "	" << Part.channel[i] << "	" << Part.mode[i] << std::endl;
+		sum += static_cast<int>(Part.number[i]*Part.sigma[i]*10.);
+	}
+
+	std::cout << std::endl;
+	
+	std::cout << sum << " particles will be generated" << std::endl << std::endl;
+
+	
+	for (int i = 0; i < Part.m1.size(); i++)
+	{
+		std::cout << OutputColor.bold_green << "[" << i + 1 << " out of " << Part.m1.size() << "]" << OutputColor.reset << " Generating " << static_cast<int>(Part.number[i]*Part.sigma[i]*10) << " particles: " << Part.name[i] << "->" << Part.channel[i] << std::endl;
+				
+		std::chrono::_V2::system_clock::time_point start = std::chrono::high_resolution_clock::now();
 		
-		Init(Part.name[counter], Part.mean[counter], Part.sigma[counter], Part.m1[counter], Part.m2[counter], Part.number[counter], Part.seed[counter], counter);
+		Init(Part.name[i], Part.mean[i], Part.sigma[i], Part.m1[i], Part.m2[i], Part.number[i], Part.mode[i], Part.seed[i]);
+	
+		std::chrono::_V2::system_clock::time_point stop = std::chrono::high_resolution_clock::now();
+
+		done += Part.number[i];
+		
+		std::cout << "At ";
+		Time.PrintCurrent();
+		std::cout << "Processing time: ";
+		Time.PrintDuration(start, stop);
+		std::cout << "Expected remaining time: ";	
+		Time.PrintRemaining(start, stop, (double) sum - done, Part.number[i]);
 	}
 	
 	return 0;
 }
 
-void AddEntry(std::string part_name, const float mean, const float sigma, const float m1, const float m2, const int part_number, const float channel_fract = 1, const int seed = 1, bool do_antipart = true)
+void AddEntry(std::string part_name, const float mean, const float sigma, const float m1, const float m2, const int part_number, const float mode = 1, const int seed = 1, bool do_antipart = true)
 {
 	Part.name.push_back(part_name);
 	Part.mean.push_back(mean);
@@ -187,16 +221,28 @@ void AddEntry(std::string part_name, const float mean, const float sigma, const 
 	Part.m2.push_back(m2);
 	Part.number.push_back(part_number);
 	Part.seed.push_back(seed);
-	Part.seed.push_back(channel_fract);
+	Part.mode.push_back(mode);
+
+	if (m1 == Mass.pion && m2 == Mass.pion) Part.channel.push_back("pi+pi");
+	else if (m1 == Mass.kaon && m2 == Mass.pion) Part.channel.push_back("k+pi");
+	else if (m2 == Mass.kaon && m1 == Mass.pion) Part.channel.push_back("pi+k");
+	else if (m1 == Mass.proton && m2 == Mass.pion) Part.channel.push_back("p+pi");
+	else if (m1 == Mass.kaon && m2 == Mass.kaon) Part.channel.push_back("k+k");
+	else if (m2 == Mass.proton && m1 == Mass.pion) Part.channel.push_back("pi+p");
+	else if (m1 == Mass.proton && m2 == Mass.kaon) Part.channel.push_back("p+k");
+	else if (m2 == Mass.proton && m1 == Mass.kaon) Part.channel.push_back("k+p");
+	else if (m1 == Mass.proton && m2 == Mass.proton) Part.channel.push_back("p+p");
+	else if (m1 == Mass.electron && m2 == Mass.electron) Part.channel.push_back("e+e");
+	else Part.channel.push_back("no");
 	
 	if (do_antipart == true)
 	{
 		std::string antipart_name = "anti" + part_name;
-		AddEntry(antipart_name, mean, sigma, m2, m1, part_number, channel_fract, seed, false);
+		AddEntry(antipart_name, mean, sigma, m2, m1, part_number, mode, seed, false);
 	}
 }
 
-void Init(std::string part_name, const float mean, const float sigma, const float m1, const float m2, const int part_number, const float channel_fract, const int seed)
+void Init(std::string part_name, const float mean, const float sigma, const float m1, const float m2, const int part_number, const float mode, const int seed)
 {
 	std::string output_file_name = "../data/" + part_name + ".root";
 	CheckOutputFile(output_file_name);
@@ -218,7 +264,7 @@ void Init(std::string part_name, const float mean, const float sigma, const floa
 	stat->SetBinContent(2, sigma);
 	stat->SetBinContent(3, m1);
 	stat->SetBinContent(4, m2);
-	stat->SetBinContent(5, channel_fract*exp(1./mean)*1E3/sigma);
+	stat->SetBinContent(5, mode*exp(1./mean)*1E3/sigma);
 
 	D1->Branch("px", &p1[0]);
 	D1->Branch("py", &p1[1]);
@@ -231,14 +277,14 @@ void Init(std::string part_name, const float mean, const float sigma, const floa
 	TH2D *mass_distr = new TH2D("mass_distr", "mass_distr", 100, 0, 10, 6000, 0, 12);
 	mass_distr->SetDefaultSumw2();
 
-	for (int counter = 0; counter < static_cast<int>(part_number*sigma*10); counter++)
+	for (int i = 0; i < static_cast<int>(part_number*sigma*10); i++)
 	{
-		ProgressBar.Block2((float) (counter+1.)/static_cast<int>(part_number*sigma*10));
+		ProgressBar.Block2((float) (i+1.)/static_cast<int>(part_number*sigma*10));
 
 		mass = rand->BreitWigner(mean, sigma);
 		if (mass < m1 + m2) continue;
 		
-		momentum = Tsallis(mass, (unsigned int) counter + seed + mass);
+		momentum = Tsallis(mass, (unsigned int) i + seed + mass);
 
 		energy = sqrt(mass*mass + momentum*momentum);
 
@@ -318,8 +364,6 @@ void Init(std::string part_name, const float mean, const float sigma, const floa
 	D2->Write();
 	mass_distr->Write();
 	stat->Write();
-
-	output->Close();
 
 	delete rand;
 	delete D1;
