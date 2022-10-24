@@ -27,7 +27,7 @@ int RestoreRes()
 	const float m1 = Mass.kaon;
 	const float m2 = Mass.pion;
 
-	std::string channel = "nopid";
+	std::string channel = "kpi";
 
 	string output_file_name = "../output/" + channel + ".root";
 

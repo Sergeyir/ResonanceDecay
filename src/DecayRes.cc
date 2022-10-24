@@ -191,6 +191,10 @@ int DecayRes()
 	
 	for (int i = 0; i < Part.m1.size(); i++)
 	{
+		std::cout << "//";
+		for (int j = 0; j < 80; j++) std::cout << "-";
+		std::cout << "//" << std::endl;
+		
 		std::cout << OutputColor.bold_green << "[" << i + 1 << " out of " << Part.m1.size() << "]" << OutputColor.reset << " Generating " << static_cast<int>(Part.number[i]*Part.sigma[i]*10) << " particles: " << Part.name[i] << "->" << Part.channel[i] << std::endl;
 				
 		std::chrono::_V2::system_clock::time_point start = std::chrono::high_resolution_clock::now();
@@ -284,8 +288,9 @@ void Init(std::string part_name, const float mean, const float sigma, const floa
 		mass = rand->BreitWigner(mean, sigma);
 		if (mass < m1 + m2) continue;
 		
-		momentum = Tsallis(mass, (unsigned int) i + seed + mass);
-
+		//momentum = Tsallis(mass, (unsigned int) i + seed + mass);
+		momentum = rand->Uniform(0.3, 8.); 
+		
 		energy = sqrt(mass*mass + momentum*momentum);
 
 		e1 = (mass*mass + m1*m1 - m2*m2)/(2*mass);

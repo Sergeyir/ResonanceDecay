@@ -24,7 +24,7 @@
 	
 		//the interval for momentum does not start from 0 to increase statistics for larger momentum
 	
-		p = r->Uniform(0.6, 8);
+		p = r->Uniform(0.3, 8);
 		
 		prob = norm*(0.0327538/pow((1+sqrt(m*m+p*p)*2.14),6.6667)-0.0385338/pow((1+sqrt(m*m+p*p)*2.14),5.6667));
 		if (prob >= r->Uniform(0,1)) i = 1;
