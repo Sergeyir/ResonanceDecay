@@ -319,6 +319,8 @@ void Init(std::string part_name, const float mean, const float sigma, const floa
 	mass_distr->Write();
 	stat->Write();
 
+	output->Close();
+
 	delete rand;
 	delete D1;
 	delete D2;
