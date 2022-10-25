@@ -27,7 +27,7 @@ int RestoreRes()
 	const float m1 = Mass.kaon;
 	const float m2 = Mass.pion;
 
-	std::string channel = "kpi";
+	std::string channel = "nopid";
 
 	string output_file_name = "../output/" + channel + ".root";
 
@@ -42,6 +42,7 @@ int RestoreRes()
 	
 	//Any channel can be observed in the detector for that reason
 	//even if it is not the channel the decay was
+
 	if (channel == "pipi" || channel == "nopid")
 	{
 		//strange mesons
@@ -280,17 +281,13 @@ void AddEntry(std::string part_name, const float m1, const float m2, const float
 	Par.m1.push_back(m1);
 	Par.m2.push_back(m2);
 	
+	Par.weight.push_back(weight);
 
 	//adding antiparticles
 	if (do_antipart == true)
 	{
-		Par.weight.push_back(weight);
 		std::string antipart_name = "anti" + part_name;
 		AddEntry(antipart_name, m2, m1, weight, false);
-	}
-	else
-	{
-		Par.weight.push_back(weight);
 	}
 }
 

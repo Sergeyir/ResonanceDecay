@@ -9,9 +9,11 @@
 #include "../lib/Particles.h"
 #include "../lib/ErrorHandler.h"
 #include "../lib/ProgressBar.h"
-#include "../func/Tsallis.cc"
+#include "../func/Tsallis.h"
 #include "../lib/Time.h"
 
+const float ptmin = 0.3;
+const float ptmax = 8.;
 const double pi = 3.14159265359;
 
 struct
@@ -21,6 +23,13 @@ struct
 	std::vector<int> number, seed;
 	std::vector<std::string> channel;
 } Part;
+
+void PrintSeparator()
+{
+		std::cout << "=";
+		for (int j = 0; j < 84; j++) std::cout << "-";
+		std::cout << "=" << std::endl;
+}
 
 void AddEntry(std::string, const float, const float, const float, const float, const int, const float = 1, const int = 1, bool = true);
 
@@ -191,17 +200,15 @@ int DecayRes()
 	
 	for (int i = 0; i < Part.m1.size(); i++)
 	{
-		std::cout << "//";
-		for (int j = 0; j < 80; j++) std::cout << "-";
-		std::cout << "//" << std::endl;
+		PrintSeparator();
 		
 		std::cout << OutputColor.bold_green << "[" << i + 1 << " out of " << Part.m1.size() << "]" << OutputColor.reset << " Generating " << static_cast<int>(Part.number[i]*Part.sigma[i]*10) << " particles: " << Part.name[i] << "->" << Part.channel[i] << std::endl;
-				
-		std::chrono::_V2::system_clock::time_point start = std::chrono::high_resolution_clock::now();
+
+		chrono_t start = std::chrono::high_resolution_clock::now();
 		
 		Init(Part.name[i], Part.mean[i], Part.sigma[i], Part.m1[i], Part.m2[i], Part.number[i], Part.mode[i], Part.seed[i]);
 	
-		std::chrono::_V2::system_clock::time_point stop = std::chrono::high_resolution_clock::now();
+		chrono_t stop = std::chrono::high_resolution_clock::now();
 
 		done += Part.number[i];
 		
@@ -288,8 +295,8 @@ void Init(std::string part_name, const float mean, const float sigma, const floa
 		mass = rand->BreitWigner(mean, sigma);
 		if (mass < m1 + m2) continue;
 		
-		//momentum = Tsallis(mass, (unsigned int) i + seed + mass);
-		momentum = rand->Uniform(0.3, 8.); 
+		momentum = Tsallis.GetMom(mass, (unsigned int) i + seed + mass, ptmin, ptmax);
+		//momentum = rand->Uniform(0.3, 8.); 
 		
 		energy = sqrt(mass*mass + momentum*momentum);
 

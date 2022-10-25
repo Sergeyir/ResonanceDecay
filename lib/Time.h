@@ -4,6 +4,8 @@
 #include<chrono>
 #include<iostream>
 
+typedef std::chrono::_V2::system_clock::time_point chrono_t;	
+
 struct
 {
 	double processing_speed = 0;
@@ -27,7 +29,7 @@ struct
 		ncalls++;
 		unsigned int duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
 		passed_time += duration;
-		processing_speed = static_cast<double>((processing_speed*(ncalls-1) + (double) done/duration)/ncalls);
+		processing_speed = static_cast<double>(((processing_speed*(ncalls-1) + (double) done/duration))/ncalls);
 
 		unsigned int remaining_time = remain/processing_speed/1000;
 		std::cout << remaining_time/3600 << "h " << (remaining_time % 3600)/60 << "m " << (remaining_time % 60) << "s" << std::endl;
