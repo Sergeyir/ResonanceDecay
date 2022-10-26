@@ -24,11 +24,11 @@ struct
 	std::vector<std::string> channel;
 } Part;
 
-void PrintSeparator()
+void PrintSeparator(std::string left_edge = "/", std::string body = "-", std::string right_edge = "/")
 {
-		std::cout << "=";
-		for (int j = 0; j < 84; j++) std::cout << "-";
-		std::cout << "=" << std::endl;
+		std::cout << left_edge;
+		for (int i = 0; i < 84; i++) std::cout << body;
+		std::cout << right_edge << std::endl;
 }
 
 void AddEntry(std::string, const float, const float, const float, const float, const int, const float = 1, const int = 1, bool = true);
@@ -190,7 +190,7 @@ int DecayRes()
 	for (int i = 0; i < Part.m1.size(); i++)
 	{
 		std::cout << "	" << Part.name[i] << "	" << Part.mean[i] << "	" << Part.sigma[i] << "	" << Part.channel[i] << "	" << Part.mode[i] << std::endl;
-		sum += static_cast<int>(Part.number[i]*Part.sigma[i]*10.);
+		sum += Part.number[i];
 	}
 
 	std::cout << std::endl;
@@ -200,13 +200,15 @@ int DecayRes()
 	
 	for (int i = 0; i < Part.m1.size(); i++)
 	{
-		PrintSeparator();
+		PrintSeparator("_", "_", "/");
 		
-		std::cout << OutputColor.bold_green << "[" << i + 1 << " out of " << Part.m1.size() << "]" << OutputColor.reset << " Generating " << static_cast<int>(Part.number[i]*Part.sigma[i]*10) << " particles: " << Part.name[i] << "->" << Part.channel[i] << std::endl;
+		std::cout << OutputColor.bold_green << "[" << i + 1 << " out of " << Part.m1.size() << "]" << OutputColor.reset << " Generating " << Part.number[i] << " particles: " << Part.name[i] << "->" << Part.channel[i] << std::endl;
 
 		chrono_t start = std::chrono::high_resolution_clock::now();
 		
 		Init(Part.name[i], Part.mean[i], Part.sigma[i], Part.m1[i], Part.m2[i], Part.number[i], Part.mode[i], Part.seed[i]);
+
+		std::cout << std::endl;
 	
 		chrono_t stop = std::chrono::high_resolution_clock::now();
 
@@ -246,7 +248,7 @@ void AddEntry(std::string part_name, const float mean, const float sigma, const 
 	else if (m1 == Mass.electron && m2 == Mass.electron) Part.channel.push_back("e+e");
 	else Part.channel.push_back("no");
 	
-	if (do_antipart == true)
+	if (do_antipart == true && m1 != m2)
 	{
 		std::string antipart_name = "anti" + part_name;
 		AddEntry(antipart_name, mean, sigma, m2, m1, part_number, mode, seed, false);
@@ -275,7 +277,7 @@ void Init(std::string part_name, const float mean, const float sigma, const floa
 	stat->SetBinContent(2, sigma);
 	stat->SetBinContent(3, m1);
 	stat->SetBinContent(4, m2);
-	stat->SetBinContent(5, mode*exp(1./mean)*1E3/sigma);
+	stat->SetBinContent(5, mode*exp(1./mean));
 
 	D1->Branch("px", &p1[0]);
 	D1->Branch("py", &p1[1]);
@@ -288,9 +290,9 @@ void Init(std::string part_name, const float mean, const float sigma, const floa
 	TH2D *mass_distr = new TH2D("mass_distr", "mass_distr", 100, 0, 10, 6000, 0, 12);
 	mass_distr->SetDefaultSumw2();
 
-	for (int i = 0; i < static_cast<int>(part_number*sigma*10); i++)
+	for (int i = 0; i < part_number; i++)
 	{
-		ProgressBar.Block2((float) (i+1.)/static_cast<int>(part_number*sigma*10));
+		ProgressBar.Block2((float) (i+1.)/part_number);
 
 		mass = rand->BreitWigner(mean, sigma);
 		if (mass < m1 + m2) continue;

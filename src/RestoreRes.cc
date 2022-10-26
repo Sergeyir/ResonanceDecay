@@ -284,7 +284,7 @@ void AddEntry(std::string part_name, const float m1, const float m2, const float
 	Par.weight.push_back(weight);
 
 	//adding antiparticles
-	if (do_antipart == true)
+	if (do_antipart == true && m1 != m2)
 	{
 		std::string antipart_name = "anti" + part_name;
 		AddEntry(antipart_name, m2, m1, weight, false);
