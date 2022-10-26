@@ -38,7 +38,11 @@ void Init(std::string, const float, const float, const float, const float, const
 int DecayRes()
 {
 	const int part_number = 1e5;
+
+	AddEntry("KS", 0.8954, 2E-3, Mass.pion, Mass.pion, part_number, 0.692);
+	AddEntry("Kstar892", 0.892, 51.4E-3, Mass.kaon, Mass.pion, part_number, 1);
 	
+	/*
 	//light unflavored mesons
 	AddEntry("rho770", 0.775, 149E-3, Mass.pion, Mass.pion, part_number, 1);
 	AddEntry("omega782", 0.782, 8.68E-3, Mass.pion, Mass.pion, part_number, 0.015);
@@ -178,6 +182,7 @@ int DecayRes()
 	AddEntry("Sigma2110", 2.105, 313E-3, Mass.proton, Mass.kaon, part_number, 0.065);
 	AddEntry("Sigma2230", 2.24, 345E-3, Mass.proton, Mass.kaon, part_number, 0.03);
 	AddEntry("Sigma2250", 2.245, 105E-3, Mass.proton, Mass.kaon, part_number, 0.03);
+	*/
 	
 	unsigned int sum = 0;
 
@@ -248,7 +253,7 @@ void AddEntry(std::string part_name, const float mean, const float sigma, const 
 	else if (m1 == Mass.electron && m2 == Mass.electron) Part.channel.push_back("e+e");
 	else Part.channel.push_back("no");
 	
-	if (do_antipart == true && m1 != m2)
+	if (do_antipart == true)
 	{
 		std::string antipart_name = "anti" + part_name;
 		AddEntry(antipart_name, mean, sigma, m2, m1, part_number, mode, seed, false);

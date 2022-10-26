@@ -27,7 +27,7 @@ int RestoreRes()
 	const float m1 = Mass.kaon;
 	const float m2 = Mass.pion;
 
-	std::string channel = "nopid";
+	std::string channel = "kpi";
 
 	string output_file_name = "../output/" + channel + ".root";
 
@@ -35,6 +35,9 @@ int RestoreRes()
 
 	TH2F *mass_distr = new TH2F("mass_distr", "mass_distr", 100, 0, 10, 6000, 0, 12);
 
+	AddEntry("KS", m1, m2);
+	AddEntry("Kstar892", m1, m2);
+	/*
 	//unindentified detector anomalies --------//
 	//-----------------------------------------//
 
@@ -257,6 +260,7 @@ int RestoreRes()
 		AddEntry("upsilon3s", m1, m2);
 	}
 	//-----------------------------------------//
+	*/
 
 	TFile *output_file = new TFile(output_file_name.c_str(), "RECREATE");
 	
