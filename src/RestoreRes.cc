@@ -12,20 +12,20 @@
 struct
 {
 	std::vector<std::string> part_name;
-	std::vector<float> m1, m2, weight;
+	std::vector<double> m1, m2, weight;
 } Par;
 
-void AddEntry(std::string, const float, const float, const float = 1, bool = 1);
+void AddEntry(std::string, const double, const double, const double = 1, bool = 1);
 
-void RestoreMass(const string, const float, const float, TH2F *, TFile *, float = 1);
+void RestoreMass(const string, const double, const double, TH2F *, TFile *, double = 1);
 
-float GetMass(const float, const float, const float, const float, const float);
+double GetMass(const double, const double, const double, const double, const double);
 
 int RestoreRes()
 {
 	gStyle->SetPalette(kVisibleSpectrum);
-	const float m1 = Mass.kaon;
-	const float m2 = Mass.pion;
+	const double m1 = Mass.kaon;
+	const double m2 = Mass.pion;
 
 	std::string channel = "kpi";
 
@@ -35,9 +35,6 @@ int RestoreRes()
 
 	TH2F *mass_distr = new TH2F("mass_distr", "mass_distr", 100, 0, 10, 6000, 0, 12);
 
-	AddEntry("KS", m1, m2);
-	AddEntry("Kstar892", m1, m2);
-	/*
 	//unindentified detector anomalies --------//
 	//-----------------------------------------//
 
@@ -260,7 +257,6 @@ int RestoreRes()
 		AddEntry("upsilon3s", m1, m2);
 	}
 	//-----------------------------------------//
-	*/
 
 	TFile *output_file = new TFile(output_file_name.c_str(), "RECREATE");
 	
@@ -276,7 +272,7 @@ int RestoreRes()
 	return 0;
 }
 
-void AddEntry(std::string part_name, const float m1, const float m2, const float weight = 1, bool do_antipart = true)
+void AddEntry(std::string part_name, const double m1, const double m2, const double weight = 1, bool do_antipart = true)
 {
 	std::string input_file_name = "../data/" + part_name + ".root";
 	CheckInputFile(input_file_name);
@@ -288,14 +284,14 @@ void AddEntry(std::string part_name, const float m1, const float m2, const float
 	Par.weight.push_back(weight);
 
 	//adding antiparticles
-	if (do_antipart == true && m1 != m2)
+	if (do_antipart == true)
 	{
 		std::string antipart_name = "anti" + part_name;
 		AddEntry(antipart_name, m2, m1, weight, false);
 	}
 }
 
-void RestoreMass(std::string part_name, const float m1, const float m2, TH2F *mass_distr, TFile *output_file, float weight = 1)
+void RestoreMass(std::string part_name, const double m1, const double m2, TH2F *mass_distr, TFile *output_file, double weight = 1)
 {
 	std::string input_file_name = "../data/" + part_name + ".root";
 	TFile *input_file = new TFile(input_file_name.c_str(), "READ");
@@ -307,11 +303,11 @@ void RestoreMass(std::string part_name, const float m1, const float m2, TH2F *ma
 
 	std::cout << res_num << " particles with the name: " << part_name << std::endl;
 
-	float p1[3], p2[3];
-	float mom1, mom2;
-	float momentum, mass, pT;
+	double p1[3], p2[3];
+	double mom1, mom2;
+	double momentum, mass, pT;
 
-	float progress = 0;
+	double progress = 0;
 
 	TH1F *stat = (TH1F*) input_file->Get("stat");
 
@@ -319,9 +315,9 @@ void RestoreMass(std::string part_name, const float m1, const float m2, TH2F *ma
 
 	TH2F part_distr = TH2F(part_name.c_str(), part_name.c_str(), 100, 0, 10, 6000, 0, 12);
 	
-	for (float counter = 0; counter < res_num; counter++)
+	for (double counter = 0; counter < res_num; counter++)
 	{
-		ProgressBar.Block((float) (counter + 1.)/res_num);
+		ProgressBar.Block((double) (counter + 1.)/res_num);
 
 		D1->GetEntry(static_cast<unsigned long>(counter));
 		D2->GetEntry(static_cast<unsigned long>(counter));
@@ -343,7 +339,7 @@ void RestoreMass(std::string part_name, const float m1, const float m2, TH2F *ma
 
 		mass = GetMass(mom1, mom2, momentum, m1, m2);
 
-		float pT = sqrt(pow(p1[0]+p2[0], 2) + pow(p1[1]+p2[1], 2));
+		double pT = sqrt(pow(p1[0]+p2[0], 2) + pow(p1[1]+p2[1], 2));
 		if (pT < 0.6) continue;
 
 		mass_distr->Fill(pT, mass, weight);
@@ -358,26 +354,26 @@ void RestoreMass(std::string part_name, const float m1, const float m2, TH2F *ma
 	delete input_file;	
 }
 
-float GetMass(const float mom1, const float mom2, const float momentum, const float m1, const float m2)
+double GetMass(const double mom1, const double mom2, const double momentum, const double m1, const double m2)
 {
-	float e1 = sqrt(mom1 + m1*m1);
-	float e2 = sqrt(mom2 + m2*m2);
+	double e1 = sqrt(mom1 + m1*m1);
+	double e2 = sqrt(mom2 + m2*m2);
 
-	float mass = sqrt(pow(e1+e2, 2) - momentum);
+	double mass = sqrt(pow(e1+e2, 2) - momentum);
 
 	return mass;
 }
 
-bool checkEnergy(float *p1, float *p2, const float mass, const float m1, const float m2)
+bool checkEnergy(double *p1, double *p2, const double mass, const double m1, const double m2)
 {
-	float energy, e1, e2, vel, gamma, phi;
-	float mom = 0, mom1 = 0, mom2 = 0;
-	const float pi = 3.14159265359;
-	float p1_tmp[3], p2_tmp[3];
+	double energy, e1, e2, vel, gamma, phi;
+	double mom = 0, mom1 = 0, mom2 = 0;
+	const double pi = 3.14159265359;
+	double p1_tmp[3], p2_tmp[3];
 
 	for (int count = 0; count < 3; count++)
 	{
-		float p;
+		double p;
 
 		p = p1[count]+p2[count];
 
@@ -422,8 +418,8 @@ bool checkEnergy(float *p1, float *p2, const float mass, const float m1, const f
 
 	energy = e1 + e2;
 
-	float e1_true = (mass*mass + m1*m1 - m2*m2)/(2*mass);
-	float e2_true = (mass*mass + m2*m2 - m1*m1)/(2*mass);
+	double e1_true = (mass*mass + m1*m1 - m2*m2)/(2*mass);
+	double e2_true = (mass*mass + m2*m2 - m1*m1)/(2*mass);
 
 	if (abs(e1 - e1_true) < 0.001 && abs (e2 - e2_true) < 0.001) {
 		//cout << mass << " " << energy - mass << " " << e1 - e1_true << " " << e2 - e2_true << endl;

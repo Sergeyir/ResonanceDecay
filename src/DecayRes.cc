@@ -5,6 +5,7 @@
 #include "TH2.h"
 #include "TTree.h"
 #include "TFile.h"
+#include "TLorentzVector.h"
 
 #include "../lib/Particles.h"
 #include "../lib/ErrorHandler.h"
@@ -12,14 +13,14 @@
 #include "../func/Tsallis.h"
 #include "../lib/Time.h"
 
-const float ptmin = 0.3;
-const float ptmax = 8.;
+const double ptmin = 0.3;
+const double ptmax = 8.;
 const double pi = 3.14159265359;
 
 struct
 {
 	std::vector<std::string> name;
-	std::vector<float> mean, sigma, m1, m2, mode;
+	std::vector<double> mean, sigma, m1, m2, mode;
 	std::vector<int> number, seed;
 	std::vector<std::string> channel;
 } Part;
@@ -31,18 +32,14 @@ void PrintSeparator(std::string left_edge = "/", std::string body = "-", std::st
 		std::cout << right_edge << std::endl;
 }
 
-void AddEntry(std::string, const float, const float, const float, const float, const int, const float = 1, const int = 1, bool = true);
+void AddEntry(std::string, const double, const double, const double, const double, const int, const double = 1, const int = 1, bool = true);
 
-void Init(std::string, const float, const float, const float, const float, const int, const float, const int);
+void Init(std::string, const double, const double, const double, const double, const int, const double, const int);
 
 int DecayRes()
 {
 	const int part_number = 1e5;
 
-	AddEntry("KS", 0.8954, 2E-3, Mass.pion, Mass.pion, part_number, 0.692);
-	AddEntry("Kstar892", 0.892, 51.4E-3, Mass.kaon, Mass.pion, part_number, 1);
-	
-	/*
 	//light unflavored mesons
 	AddEntry("rho770", 0.775, 149E-3, Mass.pion, Mass.pion, part_number, 1);
 	AddEntry("omega782", 0.782, 8.68E-3, Mass.pion, Mass.pion, part_number, 0.015);
@@ -182,7 +179,6 @@ int DecayRes()
 	AddEntry("Sigma2110", 2.105, 313E-3, Mass.proton, Mass.kaon, part_number, 0.065);
 	AddEntry("Sigma2230", 2.24, 345E-3, Mass.proton, Mass.kaon, part_number, 0.03);
 	AddEntry("Sigma2250", 2.245, 105E-3, Mass.proton, Mass.kaon, part_number, 0.03);
-	*/
 	
 	unsigned int sum = 0;
 
@@ -230,17 +226,8 @@ int DecayRes()
 	return 0;
 }
 
-void AddEntry(std::string part_name, const float mean, const float sigma, const float m1, const float m2, const int part_number, const float mode = 1, const int seed = 1, bool do_antipart = true)
+void AddEntry(std::string part_name, const double mean, const double sigma, const double m1, const double m2, const int part_number, const double mode = 1, const int seed = 1, bool do_antipart = true)
 {
-	Part.name.push_back(part_name);
-	Part.mean.push_back(mean);
-	Part.sigma.push_back(sigma);
-	Part.m1.push_back(m1);
-	Part.m2.push_back(m2);
-	Part.number.push_back(part_number);
-	Part.seed.push_back(seed);
-	Part.mode.push_back(mode);
-
 	if (m1 == Mass.pion && m2 == Mass.pion) Part.channel.push_back("pi+pi");
 	else if (m1 == Mass.kaon && m2 == Mass.pion) Part.channel.push_back("k+pi");
 	else if (m2 == Mass.kaon && m1 == Mass.pion) Part.channel.push_back("pi+k");
@@ -253,6 +240,15 @@ void AddEntry(std::string part_name, const float mean, const float sigma, const 
 	else if (m1 == Mass.electron && m2 == Mass.electron) Part.channel.push_back("e+e");
 	else Part.channel.push_back("no");
 	
+	Part.name.push_back(part_name);
+	Part.mean.push_back(mean);
+	Part.sigma.push_back(sigma);
+	Part.m1.push_back(m1);
+	Part.m2.push_back(m2);
+	Part.number.push_back(part_number);
+	Part.seed.push_back(seed);
+	Part.mode.push_back(mode);
+
 	if (do_antipart == true)
 	{
 		std::string antipart_name = "anti" + part_name;
@@ -260,7 +256,7 @@ void AddEntry(std::string part_name, const float mean, const float sigma, const 
 	}
 }
 
-void Init(std::string part_name, const float mean, const float sigma, const float m1, const float m2, const int part_number, const float mode, const int seed)
+void Init(std::string part_name, const double mean, const double sigma, const double m1, const double m2, const int part_number, const double mode, const int seed)
 {
 	std::string output_file_name = "../data/" + part_name + ".root";
 	CheckOutputFile(output_file_name);
@@ -268,9 +264,6 @@ void Init(std::string part_name, const float mean, const float sigma, const floa
 
 	TRandom *rand = new TRandom(seed);
 	
-	double mass, momentum, energy;
-	double theta, phi;
-	double mom1, mom2, e1, e2;
 	double p1[3], p2[3];
 
 	TTree *D1 = new TTree("D1", "Daughter1");
@@ -297,46 +290,47 @@ void Init(std::string part_name, const float mean, const float sigma, const floa
 
 	for (int i = 0; i < part_number; i++)
 	{
-		ProgressBar.Block2((float) (i+1.)/part_number);
+		ProgressBar.Block2((double) (i+1.)/part_number);
 
-		mass = rand->BreitWigner(mean, sigma);
+		double mass = rand->BreitWigner(mean, sigma);
 		if (mass < m1 + m2) continue;
 		
-		momentum = Tsallis.GetMom(mass, (unsigned int) i + seed + mass, ptmin, ptmax);
+		double momentum = Tsallis.GetMom(mass, (unsigned int) i + seed + mass, ptmin, ptmax);
 		//momentum = rand->Uniform(0.3, 8.); 
 		
-		energy = sqrt(mass*mass + momentum*momentum);
+		double energy = sqrt(mass*mass + momentum*momentum);
 
-		e1 = (mass*mass + m1*m1 - m2*m2)/(2*mass);
-		e2 = (mass*mass + m2*m2 - m1*m1)/(2*mass);
+		double e1 = (mass*mass + m1*m1 - m2*m2)/(2*mass);
+		double e2 = (mass*mass + m2*m2 - m1*m1)/(2*mass);
 
-		const double vel = momentum/energy;
-		const double gamma = energy/mass;
+		double vel = momentum/energy;
+		double gamma = energy/mass;
 
-		theta = rand->Uniform(pi/2);
-		phi = rand->Uniform(pi);
+		double mom1 = sqrt(e1*e1 - m1*m1);
+		double mom2 = -1.*sqrt(e2*e2 - m2*m2);
 
-		mom1 = sqrt(e1*e1 - m1*m1);
-		mom2 = sqrt(e2*e2 - m2*m2);
+		double theta = rand->Uniform(pi);
+		double phi = rand->Uniform(2.*pi);
 
 		p1[0] = mom1*cos(phi)*sin(theta);
-		p2[0] = -mom2*cos(phi)*sin(theta);
+		p2[0] = mom2*cos(phi)*sin(theta);
 
 		p1[1] = mom1*sin(phi)*sin(theta);
-		p2[1] = -mom2*sin(phi)*sin(theta);
+		p2[1] = mom2*sin(phi)*sin(theta);
 
 		p1[2] = mom1*cos(theta);
-		p2[2] = -mom2*cos(theta);
-
+		p2[2] = mom2*cos(theta);
+		
 		p1[2] = gamma*(p1[2] + vel*e1);
 		p2[2] = gamma*(p2[2] + vel*e2);
 
 		mom1 = 0;
 		mom2 = 0;
-		for (auto p : p1) mom1 += p*p;
-		for (auto p : p2) mom2 += p*p;
-
-		e1 = sqrt(m1*m1 + mom1);
+		
+		for (double p : p1) mom1 += p*p;
+		for (double p : p2) mom2 += p*p;
+		
+		e1 = sqrt(m1*m1 + mom1);	
 		e2 = sqrt(m2*m2 + mom2);
 
 		//computing spherical symmetry angles of a direction of the decayed particle momentum
@@ -365,16 +359,18 @@ void Init(std::string part_name, const float mean, const float sigma, const floa
 
 		mom1 = 0;
 		mom2 = 0;
-		for (auto p : p1) mom1 += p*p;
-		for (auto p : p2) mom2 += p*p;
+		
+		for (double p : p1) mom1 += p*p;
+		for (double p : p2) mom2 += p*p;
 
 		e1 = sqrt(m1*m1 + mom1);
 		e2 = sqrt(m2*m2 + mom2);
 
-		double pT = sqrt(pow(p1[0]+p2[0], 2) + pow(p1[1]+p2[1], 2));
-
-		mass_distr->Fill(pT, mass);
-
+		double pt = sqrt(pow(p1[0]+p2[0], 2) + pow(p1[1]+p2[1], 2));
+		if (pt < 0.3) continue;
+		
+		mass_distr->Fill(pt, mass);
+		
 		D1->Fill();
 		D2->Fill();
 	}

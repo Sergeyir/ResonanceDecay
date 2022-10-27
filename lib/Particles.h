@@ -1,3 +1,4 @@
+#pragma once
 struct
 {
 	const float pion = 0.134957;
