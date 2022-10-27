@@ -28,7 +28,7 @@ struct
 void PrintSeparator(std::string left_edge = "/", std::string body = "-", std::string right_edge = "/")
 {
 		std::cout << left_edge;
-		for (int i = 0; i < 84; i++) std::cout << body;
+		for (int i = 0; i < 90; i++) std::cout << body;
 		std::cout << right_edge << std::endl;
 }
 
@@ -201,7 +201,7 @@ int DecayRes()
 	
 	for (int i = 0; i < Part.m1.size(); i++)
 	{
-		PrintSeparator("_", "_", "/");
+		PrintSeparator("_", "_", "_");
 		
 		std::cout << OutputColor.bold_green << "[" << i + 1 << " out of " << Part.m1.size() << "]" << OutputColor.reset << " Generating " << Part.number[i] << " particles: " << Part.name[i] << "->" << Part.channel[i] << std::endl;
 
@@ -249,7 +249,7 @@ void AddEntry(std::string part_name, const double mean, const double sigma, cons
 	Part.seed.push_back(seed);
 	Part.mode.push_back(mode);
 
-	if (do_antipart == true && m1 != m2)
+	if (do_antipart == true)
 	{
 		std::string antipart_name = "anti" + part_name;
 		AddEntry(antipart_name, mean, sigma, m2, m1, part_number, mode, seed, false);

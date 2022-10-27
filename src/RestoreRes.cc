@@ -27,7 +27,7 @@ int RestoreRes()
 	const double m1 = Mass.kaon;
 	const double m2 = Mass.pion;
 
-	std::string channel = "kpi";
+	std::string channel = "nopid";
 
 	string output_file_name = "../output/" + channel + ".root";
 
@@ -284,7 +284,7 @@ void AddEntry(std::string part_name, const double m1, const double m2, const dou
 	Par.weight.push_back(weight);
 
 	//adding antiparticles
-	if (do_antipart == true && m1 != m2)
+	if (do_antipart == true)
 	{
 		std::string antipart_name = "anti" + part_name;
 		AddEntry(antipart_name, m2, m1, weight, false);
