@@ -249,7 +249,7 @@ void AddEntry(std::string part_name, const double mean, const double sigma, cons
 	Part.seed.push_back(seed);
 	Part.mode.push_back(mode);
 
-	if (do_antipart == true)
+	if (do_antipart == true && m1 != m2)
 	{
 		std::string antipart_name = "anti" + part_name;
 		AddEntry(antipart_name, mean, sigma, m2, m1, part_number, mode, seed, false);
