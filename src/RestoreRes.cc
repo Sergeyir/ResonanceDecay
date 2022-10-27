@@ -24,10 +24,10 @@ double GetMass(const double, const double, const double, const double, const dou
 int RestoreRes()
 {
 	gStyle->SetPalette(kVisibleSpectrum);
-	const double m1 = Mass.kaon;
-	const double m2 = Mass.pion;
+	const double m1 = Mass.proton;
+	const double m2 = Mass.kaon;
 
-	std::string channel = "nopid";
+	std::string channel = "pk";
 
 	string output_file_name = "../output/" + channel + ".root";
 
