@@ -6,7 +6,7 @@
 
 void PrintError()
 {
-	printf("\033[1m\033[31mError: ");
+	printf("\033[1m\033[31mERROR: ");
 	printf("\033[0m");
 	exit(1);
 }
@@ -14,15 +14,15 @@ void PrintError()
 
 void PrintErrorWithoutExit()
 {
-	printf("\033[1m\033[31mError: ");
+	printf("\033[1m\033[31mERROR: ");
 	printf("\033[0m");
 }
 
-void PrintError(string message)
+void PrintError(std::string message)
 {
-	printf("\033[1m\033[31mError: ");
+	printf("\033[1m\033[31mERROR: ");
 	printf("\033[0m");
-	cout << message << endl;
+	std::cout << message << std::endl;
 	exit(1);
 }
 
@@ -32,33 +32,33 @@ void PrintWarning()
 	printf("\033[0m");
 }
 
-void PrintWarning(string message)
+void PrintWarning(std::string message)
 {
 	printf("\033[1m\033[33mWarning: ");
 	printf("\033[0m");
-	cout << message << endl;
+	std::cout << message << std::endl;
 }
 
-void CheckInputFile(string name)
+void CheckInputFile(std::string name)
 {
-	ifstream file(name.c_str());
+	std::ifstream file(name.c_str());
 
 	if(!file.is_open())
 	{
 		PrintErrorWithoutExit();
-		cout << "File " << name << " not found" << endl;
+		std::cout << "File " << name << " not found" << std::endl;
 		exit(1);
 	}
 }
 
-void CheckOutputFile(string name)
+void CheckOutputFile(std::string name)
 {
-	ofstream file(name.c_str());
+	std::ofstream file(name.c_str());
 
 	if(!file.is_open())
 	{
 		PrintErrorWithoutExit();
-		cout << "File " << name << " cannot be created" << endl;
+		std::cout << "File " << name << " cannot be created" << std::endl;
 		exit(1);
 	}
 }

@@ -24,10 +24,10 @@ double GetMass(const double, const double, const double, const double, const dou
 int RestoreRes()
 {
 	gStyle->SetPalette(kVisibleSpectrum);
-	const double m1 = Mass.proton;
+	const double m1 = Mass.kaon;
 	const double m2 = Mass.kaon;
 
-	std::string channel = "pk";
+	std::string channel = "kk";
 
 	string output_file_name = "../output/" + channel + ".root";
 
@@ -286,7 +286,7 @@ void AddEntry(std::string part_name, const double m1, const double m2, const dou
 	//adding antiparticles
 	if (do_antipart == true)
 	{
-		std::string antipart_name = "anti" + part_name;
+		std::string antipart_name = "A" + part_name;
 		AddEntry(antipart_name, m2, m1, weight, false);
 	}
 }

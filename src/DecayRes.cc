@@ -12,6 +12,8 @@
 #include "../lib/ProgressBar.h"
 #include "../func/Tsallis.h"
 #include "../lib/Time.h"
+#include "../lib/Table.h"
+#include "../lib/StrTool.h"
 
 const double ptmin = 0.3;
 const double ptmax = 8.;
@@ -24,13 +26,6 @@ struct
 	std::vector<int> number, seed;
 	std::vector<std::string> channel;
 } Part;
-
-void PrintSeparator(std::string left_edge = "/", std::string body = "-", std::string right_edge = "/")
-{
-		std::cout << left_edge;
-		for (int i = 0; i < 90; i++) std::cout << body;
-		std::cout << right_edge << std::endl;
-}
 
 void AddEntry(std::string, const double, const double, const double, const double, const int, const double = 1, const int = 1, bool = true);
 
@@ -184,25 +179,28 @@ int DecayRes()
 
 	unsigned int done = 0;
 
-	std::cout << "Particles that will be generated: " << std::endl << std::endl; 
-	
-	std::cout << "	Name	mean(GeV)	sigma(GeV)	channel	mode" << std::endl; 
-	
+	Table<std::string, std::string, std::string, std::string, std::string, std::string> table;
+	table.Begin("Particles to be generated");
+	table.PrintHeader("Name", "mean(GeV)", "sigma(GeV)", "channel", "mode", "eff number");
+
 	for (int i = 0; i < Part.m1.size(); i++)
 	{
-		std::cout << "	" << Part.name[i] << "	" << Part.mean[i] << "	" << Part.sigma[i] << "	" << Part.channel[i] << "	" << Part.mode[i] << std::endl;
+
+		table.PrintRow(Part.name[i], 
+			StrTool.FloatToStrNf(Part.mean[i], 3), 
+			StrTool.FloatToStrNf(Part.sigma[i], 6), 
+			Part.channel[i], 
+			StrTool.FloatToStrNf(Part.mode[i], 4), 
+			StrTool.FloatToStrNf(Part.mode[i]*part_number*exp(1./Part.mean[i]), 0));
 		sum += Part.number[i];
 	}
-
-	std::cout << std::endl;
 	
-	std::cout << sum << " particles will be generated" << std::endl << std::endl;
+	table.End();
 
+	std::cout << sum << " particles will be generated" << std::endl << std::endl;
 	
 	for (int i = 0; i < Part.m1.size(); i++)
 	{
-		PrintSeparator("_", "_", "_");
-		
 		std::cout << OutputColor.bold_green << "[" << i + 1 << " out of " << Part.m1.size() << "]" << OutputColor.reset << " Generating " << Part.number[i] << " particles: " << Part.name[i] << "->" << Part.channel[i] << std::endl;
 
 		chrono_t start = std::chrono::high_resolution_clock::now();
@@ -251,7 +249,7 @@ void AddEntry(std::string part_name, const double mean, const double sigma, cons
 
 	if (do_antipart == true)
 	{
-		std::string antipart_name = "anti" + part_name;
+		std::string antipart_name = "A" + part_name;
 		AddEntry(antipart_name, mean, sigma, m2, m1, part_number, mode, seed, false);
 	}
 }
