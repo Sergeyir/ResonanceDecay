@@ -76,7 +76,7 @@ int DecayRes()
 	//bottom mesons
 	AddEntry("B0_kpi", 5.279, 2E-3, Mass.kaon, Mass.pion, part_number, 0.05);
 	AddEntry("B0_kk", 5.279, 2E-3, Mass.kaon, Mass.kaon, part_number, 0.5);
-	AddEntry("B0_kp", 5.279, 2E-3, Mass.kaon, Mass.proton, part_number, 0.1);
+	AddEntry("B0_kp", 5.279, 2E-3, Mass.proton, Mass.kaon, part_number, 0.1);
 
 	//c bar mesons
 	AddEntry("etac1s", 2.983, 32E-3, Mass.proton, Mass.proton, part_number, 0.0144E-3);
