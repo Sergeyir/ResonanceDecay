@@ -13,6 +13,8 @@ struct
 {
 	std::vector<std::string> part_name;
 	std::vector<double> m1, m2, weight;
+	float mom_div1 = 0.91;
+	float mom_div2 = 0.91;
 } Par;
 
 void AddEntry(std::string, const double, const double, const double = 1, bool = 1);
@@ -25,9 +27,9 @@ int RestoreRes()
 {
 	gStyle->SetPalette(kVisibleSpectrum);
 	const double m1 = Mass.kaon;
-	const double m2 = Mass.kaon;
+	const double m2 = Mass.pion;
 
-	std::string channel = "nopid";
+	std::string channel = "kpi";
 
 	string output_file_name = "../output/" + channel + ".root";
 
@@ -322,13 +324,13 @@ void RestoreMass(std::string part_name, const double m1, const double m2, TH2F *
 		D1->GetEntry(static_cast<unsigned long>(counter));
 		D2->GetEntry(static_cast<unsigned long>(counter));
 
-		p1[0] = D1->GetLeaf("px")->GetValue();	
-		p1[1] = D1->GetLeaf("py")->GetValue();	
-		p1[2] = D1->GetLeaf("pz")->GetValue();	
+		p1[0] = D1->GetLeaf("px")->GetValue()/Par.mom_div1;	
+		p1[1] = D1->GetLeaf("py")->GetValue()/Par.mom_div1;	
+		p1[2] = D1->GetLeaf("pz")->GetValue()/Par.mom_div1;	
 
-		p2[0] = D2->GetLeaf("px")->GetValue();	
-		p2[1] = D2->GetLeaf("py")->GetValue();	
-		p2[2] = D2->GetLeaf("pz")->GetValue();	
+		p2[0] = D2->GetLeaf("px")->GetValue()/Par.mom_div2;	
+		p2[1] = D2->GetLeaf("py")->GetValue()/Par.mom_div2;	
+		p2[2] = D2->GetLeaf("pz")->GetValue()/Par.mom_div2;	
 
 		//momentum for the next 3 lines are squared
 
